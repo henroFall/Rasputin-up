@@ -170,10 +170,6 @@ sudo wget -O /usr/share/keyrings/azlux-archive-keyring.gpg https://azlux.fr/repo
 sudo apt update
 sudo apt install -y log2ram
 
-# Enable log2ram service
-echo "Enabling log2ram service..."
-sudo systemctl enable log2ram.service
-
 echo "Configuring log2ram..."
 sudo sed -i 's/SIZE=.*$/SIZE=512M/' /etc/log2ram.conf
 sudo sed -i 's/MAIL=.*$/MAIL=false/' /etc/log2ram.conf
