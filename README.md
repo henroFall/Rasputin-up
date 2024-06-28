@@ -19,7 +19,7 @@ Welcome to **Rasputin-up**! This suite is designed to optimize and enhance the p
 To install **Rasputin-up**, simply run the following command:
 
 ```bash
-curl -L https://github.com/henroFall/Rasputin-up/rasputinupsetup.sh | bash
+curl -L https://github.com/henroFall/Rasputin-up/rasputinupsetup.shhttps://raw.githubusercontent.com/henroFall/Rasputin-up/main/rasputinupsetup.sh | bash
 ```
 
 ## Usage
