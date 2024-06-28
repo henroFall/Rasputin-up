@@ -34,7 +34,7 @@ That's it! Once you reboot, everything is all set.
 
 ## Credits
 
-All I did here was hack together an install script, and even used AI so I wouldn't have to type as much. All credit to the original authors of the zram-swap scripts that later got ported into what is now **[Pi-Apps](https://github.com/Botspot/pi-apps)** . I borrowed the "More RAM" script. 
+All credit to the original authors of the zram-swap scripts that later got ported into what is now **[Pi-Apps](https://github.com/Botspot/pi-apps)** . I borrowed the "More RAM" script. 
 
 Also, full credit to **[log2ram](https://github.com/azlux/log2ram)**, another great script, essential for Raspi or any OS running on fragile media. 
 
