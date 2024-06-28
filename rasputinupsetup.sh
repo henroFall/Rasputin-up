@@ -11,28 +11,28 @@ read -n 1 -s
 echo "Cleaning up prior installations of More Ram and log2ram..."
 
 # Stop and disable More Ram service if it exists
-if systemctl is-active --quiet more-ram; then
+if systemctl is-active --quiet more-ram.service; then
     echo "Stopping and disabling More Ram service..."
-    sudo systemctl stop more-ram
-    sudo systemctl disable more-ram
+    sudo systemctl stop more-ram.service
+    sudo systemctl disable more-ram.service
 fi
 
 # Uninstall More Ram if the uninstall script exists
-if [ -f "/opt/More RAM/uninstall" ]; then
+if [ -f "/opt/More_RAM/uninstall" ]; then
     echo "Uninstalling More Ram using the provided uninstall script..."
-    sudo chmod +x /opt/More\ RAM/uninstall
-    sudo bash /opt/More\ RAM/uninstall
-elif [ -d "/opt/More RAM" ]; then
+    sudo chmod +x /opt/More_RAM/uninstall
+    sudo bash /opt/More_RAM/uninstall
+elif [ -d "/opt/More_RAM" ]; then
     echo "Uninstalling More Ram manually..."
-    sudo rm -rf /opt/More\ RAM
+    sudo rm -rf /opt/More_RAM
     sudo rm -f /usr/local/bin/more-ram
 fi
 
 # Stop and disable log2ram service if it exists
-if systemctl is-active --quiet log2ram; then
+if systemctl is-active --quiet log2ram.service; then
     echo "Stopping and disabling log2ram service..."
-    sudo systemctl stop log2ram
-    sudo systemctl disable log2ram
+    sudo systemctl stop log2ram.service
+    sudo systemctl disable log2ram.service
 fi
 
 # Uninstall log2ram
@@ -75,21 +75,12 @@ for service in zabbix-agent2 zabbix-proxy zabbix-proxy-psql zabbix-agent; do
     fi
 done
 
-# Step 1: Install "More Ram" from the botspot/pi-apps github
-echo "Installing More Ram from the botspot/pi-apps github..."
+# Step 1: Install "More RAM" from the botspot/pi-apps github
+echo "Installing More RAM from the botspot/pi-apps github..."
 mkdir -p /tmp/more_ram_install
 cd /tmp/more_ram_install
 wget https://raw.githubusercontent.com/Botspot/pi-apps/master/apps/More%20RAM/install
 bash install
-
-# Ensure uninstall script is placed in the correct location
-echo "Placing More Ram uninstall script in the correct location..."
-wget https://raw.githubusercontent.com/Botspot/pi-apps/master/apps/More%20RAM/uninstall -O /opt/More\ RAM/uninstall
-chmod +x /opt/More\ RAM/uninstall
-
-# Enable More Ram service
-echo "Enabling More Ram service..."
-sudo systemctl enable more-ram
 
 # Step 2: Install log2ram via apt and configure
 echo "Adding log2ram repository and installing log2ram via apt..."
@@ -100,7 +91,7 @@ sudo apt install -y log2ram
 
 # Enable log2ram service
 echo "Enabling log2ram service..."
-sudo systemctl enable log2ram
+sudo systemctl enable log2ram.service
 
 echo "Configuring log2ram..."
 sudo sed -i 's/SIZE=.*$/SIZE=512M/' /etc/log2ram.conf
