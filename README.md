@@ -5,7 +5,7 @@
 
 ## Introduction
 
-Welcome to **Rasputin-up**! I cobbled this together becuase I got tired of doing this all manually every time I built a new SBC. For now, I've got log2ram and the pi-apps version of zram-swap to reduce wear on your SD card and reduce overall I/O overhead. I'm also change all the log files I can find to roll every 7 days.
+Welcome to **Rasputin-up**! I cobbled this together becuase I got tired of doing this all manually every time I built a new SBC. For now, I've got log2ram and the pi-apps version of zram-swap to reduce wear on your SD card and reduce overall I/O overhead. I'm also change all the log files I can find to roll every 7 days. You can technically run this on any Debian / Ubuntu based thing, but the problems this solves affect SBCs (1GB and up) with SD based main storage. 
 
 ## Features
 
