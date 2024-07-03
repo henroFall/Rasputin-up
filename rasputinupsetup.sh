@@ -4,9 +4,6 @@ is_number() {
 }
 
 LOG_DIR="/var/log"
-
-echo "Starting setup script..."
-echo
 # Get the total amount of RAM in MB
 total_ram=$(free -m | awk '/^Mem:/{print $2}')
 # Determine the appropriate SIZE value based on the total RAM
@@ -17,8 +14,9 @@ elif [ "$total_ram" -ge 4096 ]; then
 else
     size_value="256"
 fi
-
-
+echo "Welcome to the Rasputin-up setup script."
+echo "----------------------------------------"
+echo
 echo "For the installation, we need to temporarily shrink the log directory size down to $TARGET_SIZE MB"
 echo "This is the amount of space in RAM that Log2Ram will occoupy. Do not worry," 
 echo "after the installation, the log directory will be allowed to grow to well over 5GB if necessary."
@@ -27,22 +25,22 @@ echo "All current logs will be configured to roll over every 7 days. Note that a
 echo "you install later will need to be manually configured to use logrotate."
 echo "Refer to this article for more information on how to use the logrotate.d folder: https://linuxhandbook.com/logrotate/"
 echo
-echo "When you are done reading, press any key to continue or CTRL+C to abort."
+echo "If you played with an earlier version of this and now I've added something new, the installer is going to remain defensive"
+echo "against anything leftover from prior installs, and clean up accordingly. If you run it twice by accident, it won't hurt, either."
+echo
+echo "I haven't done anything yet. When you are done reading, press any key to continue or CTRL+C to abort."
 read -n 1 -s
 
 TARGET_SIZE=$((TARGET_SIZE * 1024))
 
-# Step 0: Clean up prior runs
+# Clean up any prior runs
 echo "Cleaning up prior installations of More Ram and log2ram..."
 
-# Stop and disable More Ram service if it exists
 if systemctl is-active --quiet more-ram.service; then
     echo "Stopping and disabling More Ram service..."
     sudo systemctl stop more-ram.service
     sudo systemctl disable more-ram.service
 fi
-
-# Uninstall More Ram if the uninstall script exists
 echo "Placing More RAM uninstall script in the correct location..."
 if [ ! -f "/opt/More_RAM/uninstall" ]; then
     wget https://raw.githubusercontent.com/Botspot/pi-apps/master/apps/More%20RAM/uninstall -O /opt/More_RAM/uninstall
@@ -56,30 +54,24 @@ elif [ -d "/opt/More_RAM" ]; then
     sudo rm -rf /opt/More_RAM
     sudo rm -f /usr/local/bin/more-ram
 fi
-
-# Stop and disable log2ram service if it exists
 if systemctl is-active --quiet log2ram.service; then
     echo "Stopping and disabling log2ram service..."
     sudo systemctl stop log2ram.service
     sudo systemctl disable log2ram.service
 fi
-
-# Uninstall log2ram
 if dpkg -l | grep -q log2ram; then
     echo "Uninstalling log2ram..."
     sudo apt remove -y log2ram
 fi
-
-# Remove leftover temporary directories
 echo "Removing leftover temporary directories..."
 sudo rm -rf /tmp/more_ram_install
 
-# Step 0: Vacuum journalctl down to 64MB
+# Vacuum journalctl down to 64MB
 echo -n "Vacuuming journalctl logs down to 64MB..."
 sudo journalctl --vacuum-size=64M > /dev/null
 echo " Done."
 
-# Step 0: Create logrotate configuration for syslog
+# Create logrotate configuration for syslog
 echo "Creating logrotate configuration for syslog..."
 sudo bash -c 'cat <<EOL > /etc/logrotate.d/syslog
 /var/log/syslog {
@@ -93,41 +85,42 @@ sudo bash -c 'cat <<EOL > /etc/logrotate.d/syslog
 }
 EOL'
 
-# Step 0: Update logrotate configurations for Zabbix components
-echo "Updating logrotate configurations for Zabbix components..."
-for service in zabbix-agent2 zabbix-proxy zabbix-proxy-psql zabbix-agent; do
-    logrotate_conf="/etc/logrotate.d/$service"
-    echo "Creating logrotate configuration for $service..."
+# Update logrotate configurations
+# Function to create or update logrotate configuration
+configure_logrotate() {
+    local log_file=$1
+    local logrotate_conf="/etc/logrotate.d/$(basename $log_file .log)"
+    
+    echo "Configuring logrotate for $log_file..."
     sudo bash -c "cat <<EOL > $logrotate_conf
-/var/log/$service.log {
-    rotate 7
+$log_file {
     daily
+    rotate 7
     missingok
     notifempty
     postrotate
-        /usr/bin/systemctl reload $service > /dev/null 2>&1 || true
+        /usr/bin/systemctl reload rsyslog > /dev/null 2>&1 || true
     endscript
 }
 EOL"
+}
+echo "Updating logrotate configurations..."
+echo "Configuring logrotate to retain logs for 7 days..."
+find /var/log -type f -name "*.log" ! -name "*.gz" ! -name "*.1" ! -name "*.2" ! -name "*.old" ! -name "*.[0-9]*" ! -name "*-[0-9][0-9]*" | while read log_file; do
+    configure_logrotate $log_file
 done
-echo "Logrotate configurations for Zabbix components updated."
+echo "Logrotate configuration complete. Logs will be retained for 7 days."
 
-#Initial log dir clean
-sudo find /var/log -type f -name "*.gz" -delete
-sudo find /var/log -type f -name "*.log" -mtime +14 -exec rm -f {} \;
-
-
-# Calculate the total size of the log directory
+#Log dir purge to SIZE variable
+# Cleanup functions
 get_log_size() {
     du -sk $LOG_DIR | cut -f1
 }
-
-# Find the largest log files
 find_largest_logs() {
     find $LOG_DIR -type f -exec du -k {} + | sort -rn | head -n 10
 }
-
-    
+log_cleanup() {
+    current_size=$(get_log_size)
     echo "Current log directory size: $current_size KB"
 
     if [ $current_size -le $TARGET_SIZE ]; then
@@ -151,10 +144,11 @@ find_largest_logs() {
         done <<< "$largest_logs"
     done
 }
-
+sudo find /var/log -type f -name "*.gz" -delete
+sudo find /var/log -type f -name "*.log" -mtime +14 -exec rm -f {} \;
 log_cleanup
 
-# Step 1: Install "More RAM" from the botspot/pi-apps github
+# Install "More RAM" from the botspot/pi-apps github
 echo "Installing More RAM from the botspot/pi-apps github..."
 mkdir -p /tmp/more_ram_install
 cd /tmp/more_ram_install
@@ -162,11 +156,10 @@ wget https://raw.githubusercontent.com/Botspot/pi-apps/master/apps/More%20RAM/in
 bash install
 
 # Ensure uninstall script is placed in the correct location
-echo "Placing More RAM uninstall script in the correct location..."
 wget https://raw.githubusercontent.com/Botspot/pi-apps/master/apps/More%20RAM/uninstall -O /opt/More_RAM/uninstall
 chmod +x /opt/More_RAM/uninstall
 
-# Step 2: Install log2ram via apt and configure
+# Install log2ram via apt and configure
 echo "Adding log2ram repository and installing log2ram via apt..."
 echo "deb [signed-by=/usr/share/keyrings/azlux-archive-keyring.gpg] http://packages.azlux.fr/debian/ bookworm main" | sudo tee /etc/apt/sources.list.d/azlux.list
 sudo wget -O /usr/share/keyrings/azlux-archive-keyring.gpg https://azlux.fr/repo.gpg
@@ -191,8 +184,8 @@ for i in $(seq 10 -1 1); do
     sleep 1
 done
 
-# Reboot the system
-sudo reboot
-
 # Inform the user to check log2ram status after reboot
 echo "After the reboot, you can check the status of log2ram by running 'systemctl status log2ram'."
+
+# Reboot the system
+sudo reboot
