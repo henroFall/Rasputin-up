@@ -20,7 +20,7 @@ You can technically run this on any Debian / Ubuntu based thing, but the problem
 To install **Rasputin-up**, simply run the following command:
 
 ```bash
-curl -L https://raw.githubusercontent.com/henroFall/Rasputin-up/main/rasputinupsetup.sh | bash
+curl -L https://raw.githubusercontent.com/henroFall/Rasputin-up/main/rasputinupsetup.sh -o /tmp/rasputinupsetup.sh && sudo bash /tmp/rasputinupsetup.sh
 ```
 There are no options, there is no stopping it. The script is heavily commented so you can see what you're getting yourself into.
 
