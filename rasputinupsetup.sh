@@ -1,5 +1,5 @@
 #!/bin/bash
-VER=0.99
+VER=1.0
 
 # I am ROOT?
 if [ "$EUID" -ne 0 ]; then
@@ -414,7 +414,7 @@ check_desktop_environment() {
 remove_default_vnc() {
   if dpkg -l | grep -q realvnc-vnc-server; then
     echo "Raspberry Pi's default VNC server detected. Removing it..."
-    sudo apt-get remove -y realvnc-vnc-server
+    sudo apt remove -y realvnc-vnc-server
   else
     echo "Raspberry Pi's default VNC server not detected."
   fi
@@ -422,8 +422,8 @@ remove_default_vnc() {
 
 install_tightvnc() {
   echo "Installing TightVNC Server..."
-  sudo apt-get update
-  sudo apt-get install -y tightvncserver
+  sudo apt update
+  sudo apt install -y tightvncserver
 }
 
 create_service() {
@@ -462,12 +462,13 @@ setup_vnc() {
   fi
 
   if [[ "$do_stuff" == true ]]; then
-    remove_default_vnc
-    install_tightvnc
-    echo "Running TightVNC Server for initial configuration..."
-    vncserver :1
-    create_service
-    echo "TightVNC Server has been installed and configured. It will start automatically at boot."
+    #remove_default_vnc
+    #install_tightvnc
+    #echo "Running TightVNC Server for initial configuration..."
+    #vncserver :1
+    #create_service
+    #echo "TightVNC Server has been installed and configured. It will start automatically at boot."
+	echo "TightVNC Installer is out of service. Please try back later."
   else
     echo "Skipping the installation and configuration of TightVNC Server."
   fi
