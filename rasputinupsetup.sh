@@ -1,5 +1,5 @@
 #!/bin/bash
-VER=0.984
+VER=0.985
 
 # I am ROOT?
 if [ "$EUID" -ne 0 ]; then
@@ -293,7 +293,8 @@ else
     echo
 fi
 if [ ! -f /etc/log2ram.conf ]; then
-    echo "Glitch! log2ram.conf does not exist!"
+    echo "(Expected) glitch! log2ram.conf does not exist after install from France!"
+    echo "Grabbing conf file directly..."
     curl -L https://raw.githubusercontent.com/azlux/log2ram/master/log2ram.conf -o /etc/log2ram.conf
     echo "/etc/log2ram.conf has been downloaded."
 else
