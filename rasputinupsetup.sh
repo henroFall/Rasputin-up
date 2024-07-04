@@ -258,6 +258,7 @@ tmp_file="/tmp/uninstall_modified"
 echo '#!/bin/bash' > "$tmp_file"
 echo "$functions" >> "$tmp_file"
 tail -n +2 /tmp/uninstall >> "$tmp_file"
+mkdir -p /opt/More_RAM/
 mv -f $tmp_file /opt/More_RAM/uninstall
 chmod +x /opt/More_RAM/uninstall
 
