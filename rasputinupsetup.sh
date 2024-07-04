@@ -1,5 +1,5 @@
 #!/bin/bash
-VER=1.6
+VER=1.7
 
 # I am ROOT?
 if [ "$EUID" -ne 0 ]; then
@@ -57,19 +57,11 @@ if systemctl is-active --quiet zram-swap.service; then
     systemctl stop zram-swap.service
     systemctl disable zram-swap.service
 fi
-echo "Placing More RAM uninstall script in the correct location..."
-if [ ! -f "/opt/More_RAM/uninstall" ]; then
-    mkdir -p /opt/More_RAM/
-    wget https://raw.githubusercontent.com/Botspot/pi-apps/master/apps/More%20RAM/uninstall -O /opt/More_RAM/uninstall
-	chmod +x /opt/More_RAM/uninstall
-fi
 if [ -f "/opt/More_RAM/uninstall" ]; then
     echo "Uninstalling More Ram using the provided uninstall script..."
     bash /opt/More_RAM/uninstall
 elif [ -d "/opt/More_RAM" ]; then
-    echo "Uninstalling More Ram manually..."
-    rm -rf /opt/More_RAM
-    rm -f /usr/local/bin/more-ram
+    echo "More Ram not installed by me, or does not exist."
 fi
 if systemctl is-active --quiet log2ram.service; then
     echo "Stopping and disabling log2ram service..."
@@ -79,7 +71,8 @@ fi
 if dpkg -l | grep -q log2ram; then
     echo "Uninstalling log2ram..."
     apt remove -y log2ram
-	rm -f /etc/log2ram.conf
+    echo "Removing conf file."
+    rm -f /etc/log2ram.conf
 fi
 echo "Removing leftover temporary directories..."
 rm -rf /tmp/more_ram_install
@@ -176,11 +169,11 @@ cd /tmp/more_ram_install
 wget https://raw.githubusercontent.com/Botspot/pi-apps/master/apps/More%20RAM/install
 bash install
 
-# Ensure uninstall script is placed in the correct location
+# Put uninstaller in place
 wget https://raw.githubusercontent.com/Botspot/pi-apps/master/apps/More%20RAM/uninstall -O /opt/More_RAM/uninstall
 chmod +x /opt/More_RAM/uninstall
 
-# Install log2ram via apt and configure
+# Install and config log2ram
 echo "Adding log2ram repository and installing log2ram via apt..."
 echo "deb [signed-by=/usr/share/keyrings/azlux-archive-keyring.gpg] http://packages.azlux.fr/debian/ bookworm main" | tee /etc/apt/sources.list.d/azlux.list
 wget -O /usr/share/keyrings/azlux-archive-keyring.gpg https://azlux.fr/repo.gpg
@@ -193,7 +186,6 @@ if [ ! -f /etc/log2ram.conf ]; then
 else
     echo "/etc/log2ram.conf exists."
 fi
-
 echo "Configuring log2ram options..."
 sed -i "s/SIZE=.*$/SIZE=${size_valueMB}M/" /etc/log2ram.conf
 sed -i 's/MAIL=.*$/MAIL=false/' /etc/log2ram.conf
