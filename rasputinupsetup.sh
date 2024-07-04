@@ -1,5 +1,5 @@
 #!/bin/bash
-VER=0.982
+VER=0.983
 
 # I am ROOT?
 if [ "$EUID" -ne 0 ]; then
@@ -27,23 +27,16 @@ echo "----------------------------------------"
 echo "Version: $VER"
 echo
 echo "Why am I doing this? Well, this is something I run on every SBC as I get started. So you're here to do what I do."
-echo "Basically, you'll save wear and tear on the SD card and give an overall speed boost to alot of the day-to-day operations."
-echo "You're doing this by moving the swap file to a compressed ram disk (translation, small ram footprint, swap when needed to compressed RAM vs burning the SD),"
-echo "reconfiguring logging and moving all of the log files to a RAM disk (which is regularly flushed to nonvolitle storage), and also,"
-echo "if a desktop GUI is detected, you can optionally install Tightvnc instead Real. Why? Because my reasons. Mostly MobaXTerm."
+echo "Basically, you'll save wear and tear on the SD card and give an overall speed boost to alot of the day-to-day operations. You're doing this by moving the swap file to a compressed ram disk (translation, small ram footprint, swap when needed to compressed RAM vs burning the SD), reconfiguring logging and moving all of the log files to a RAM disk (which is regularly flushed to nonvolitle storage), and also, if a desktop GUI is detected, you can optionally install Tightvnc instead Real. Why? Because my reasons. Mostly MobaXTerm."
 echo -e "\e]8;;https://mobaxterm.mobatek.net/\e\\MobaXTerm\e]8;;\e\\"
 echo
-echo "For the installation, we need to shrink the log directory size down to $size_value MB"
-echo "This is the amount of space in RAM that Log2Ram will occoupy. and how big logs can grow. "
-echo "Log2Ram will handle compressing the contents in RAM, so logs can grow through runtime."
-echo "But, at shutdown, the logs will again be pruned to fit into the alloted space."
+echo "For the installation, we need to shrink the log directory size down to $size_value MB. This is the amount of space in RAM that Log2Ram will occoupy. and how big logs can grow. "
+echo "Log2Ram will handle compressing the contents in RAM, so logs can grow through runtime. But, at shutdown, the logs will again be pruned to fit into the alloted space."
 echo
-echo "All current logs will be configured to roll over every 7 days. Note that any new applications"
-echo "you install later will need to be manually configured to use logrotate. A future version will automate this at shutdown."
+echo "All current logs will be configured to roll over every 7 days. Note that any new applications you install later will need to be manually configured to use logrotate. A future version will automate this at shutdown."
 echo "Refer to this article for more information on how to use the logrotate.d folder: https://linuxhandbook.com/logrotate/"
 echo
-echo "If you played with an earlier version of this and now I've added something new, the installer is going to remain defensive"
-echo "against anything leftover from prior installs, and clean up accordingly. If you run it twice by accident, it won't hurt, either."
+echo "If you played with an earlier version of this and now I've added something new, the installer is going to remain defensive against anything leftover from prior installs, and clean up accordingly. If you run it twice by accident, it won't hurt, either." 
 echo
 echo "I haven't done anything yet. When you are done reading, PRESS:"
 echo "  V,             to install tightvncserver if a desktop is present, with no further questions"
@@ -85,15 +78,15 @@ echo "Removing leftover temporary directories..."
 rm -rf /tmp/more_ram_install
 
 if [[ " $@ " =~ " --uninstall " ]]; then
-    echo "Uninstall flag detected. Exiting the script."
+    echo "Uninstall flag detected. Exiting now."
     exit 0
 fi
+#####################################################################
 # Vacuum journalctl down to 32MB
 echo -n "Vacuuming journalctl logs down to 32MB..."
 journalctl --vacuum-size=64M > /dev/null
 echo " Done."
 sed -i 's/SystemMaxUse=.*$/SystemMaxUse=32M/' /etc/systemd/journald.conf
-
 echo "Creating logrotate configuration for syslog..."
 bash -c 'cat <<EOL > /etc/logrotate.d/syslog
 /var/log/syslog {
@@ -106,13 +99,9 @@ bash -c 'cat <<EOL > /etc/logrotate.d/syslog
     endscript
 }
 EOL'
-
-# Update logrotate configurations
-# Function to create or update logrotate configuration
 configure_logrotate() {
     local log_file=$1
     local logrotate_conf="/etc/logrotate.d/$(basename $log_file .log)"
-    
     echo "Configuring logrotate for $log_file..."
     bash -c "cat <<EOL > $logrotate_conf
 $log_file {
