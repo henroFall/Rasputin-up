@@ -1,5 +1,5 @@
 #!/bin/bash
-VER=1.95
+VER=1.96
 
 # I am ROOT?
 if [ "$EUID" -ne 0 ]; then
@@ -169,7 +169,45 @@ wget https://raw.githubusercontent.com/Botspot/pi-apps/master/apps/More%20RAM/in
 bash install
 
 # Put uninstaller in place
-wget https://raw.githubusercontent.com/Botspot/pi-apps/master/apps/More%20RAM/uninstall -O /opt/More_RAM/uninstall
+curl -L https://github.com/Botspot/pi-apps/raw/master/apps/More%20RAM/uninstall -o /tmp/uninstall
+functions=$(cat <<'EOF'
+error() {
+  echo -e "\e[91m$1\e[0m" 1>&2
+  exit 1
+}
+status() {
+  if [[ "$1" == '-'* ]] && [ ! -z "$2" ]; then
+    echo -e $1 "\e[96m$2\e[0m" 1>&2
+  else
+    echo -e "\e[96m$1\e[0m" 1>&2
+  fi
+}
+status_green() {
+  echo -e "\e[92m$1\e[0m" 1>&2
+}
+set_value() {
+  local file="$2"
+  [ -z "$file" ] && error "set_value: path to config-file must be specified."
+  [ ! -f "$file" ] && error "Config file '$file' does not exist!"
+  local setting="$1"
+  local setting_without_value="$(echo "$setting" | awk -F= '{print $1}')"
+  sudo sed -i "s/^${setting_without_value}=.*/${setting}/g" "$file"
+  if ! grep -qxF "$setting" "$file"; then
+    echo "$setting" | sudo tee -a "$file" >/dev/null
+  fi
+}
+set_sysctl_value() {
+  set_value "$1" /etc/sysctl.conf
+  echo "  - $1"
+  sudo sysctl "$1" >/dev/null
+}
+EOF
+)
+tmp_file="/tmp/uninstall_modified"
+echo '#!/bin/bash' > "$tmp_file"
+echo "$functions" >> "$tmp_file"
+tail -n +2 /tmp/uninstall >> "$tmp_file"
+mv -f $tmp_file /opt/More_RAM/uninstall
 chmod +x /opt/More_RAM/uninstall
 
 # Install and config log2ram
