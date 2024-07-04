@@ -1,5 +1,5 @@
 #!/bin/bash
-VER=0.989
+VER=0.987
 
 # I am ROOT?
 if [ "$EUID" -ne 0 ]; then
@@ -81,26 +81,6 @@ if dpkg -l | grep -q log2ram; then
     apt remove -y log2ram
     echo "Removing conf file."
     rm -f /etc/log2ram.conf
-	#!/bin/bash
-
-	RC_LOCAL_PATH="/etc/rc.local"
-	BACKUP_PATH="/etc/rc.local.bak"
-
-	if [ ! -f "$RC_LOCAL_PATH" ]; then
-		echo "$RC_LOCAL_PATH does not exist. Nothing to remove."
-		exit 0
-	fi
-
-	cp "$RC_LOCAL_PATH" "$BACKUP_PATH"
-
-	START_MARKER='service_status=$(systemctl is-active log2ram)'
-	END_MARKER='Use '\''systemctl status log2ram'\'' for further information.'
-
-	sed -i "/$START_MARKER/,/$END_MARKER/d" "$RC_LOCAL_PATH"
-
-	echo "The log2ram status check script has been removed from $RC_LOCAL_PATH"
-
-
 fi
 echo "Removing leftover temporary directories..."
 rm -rf /tmp/more_ram_install
@@ -334,12 +314,6 @@ sed -i "s/SIZE=.*$/SIZE=${size_valueMB}M/" /etc/log2ram.conf
 sed -i 's/MAIL=.*$/MAIL=false/' /etc/log2ram.conf
 sed -i 's/LOG_DISK_SIZE=.*$/LOG_DISK_SIZE=2048/' /etc/log2ram.conf
 echo "Updated /etc/log2ram.conf with SIZE=$size_valueMB MB based on total RAM of $total_ram MB."
-
-RC_LOCAL_PATH="/etc/rc.local"
-if [ ! -f "$RC_LOCAL_PATH" ]; then
-    echo -e "#!/bin/bash\n\nexit 0" > "$RC_LOCAL_PATH"
-    chmod +x "$RC_LOCAL_PATH"
-fi
 
 check_script=$(cat <<'EOF'
 service_status=$(systemctl is-active log2ram)
