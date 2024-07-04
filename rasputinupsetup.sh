@@ -1,5 +1,5 @@
 #!/bin/bash
-VER=1.91
+VER=1.92
 
 # I am ROOT?
 if [ "$EUID" -ne 0 ]; then
@@ -40,11 +40,9 @@ echo "against anything leftover from prior installs, and clean up accordingly. I
 echo
 echo "I haven't done anything yet. When you are done reading, press any key to continue or CTRL+C to abort."
 if [[ ! " $@ " =~ " --uninstall " ]]; then
-    echo "Uninstall flag detected."
     read -n 1 -s
 else
     echo "UNINSTALLING..."
-    # Add the code to do the thing here
 fi
 
 size_valueMB=size_value
