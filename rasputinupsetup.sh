@@ -25,7 +25,7 @@ fi
 echo "Welcome to the Rasputin-up setup script."
 echo "----------------------------------------"
 echo
-echo "For the installation, we need to temporarily shrink the log directory size down to $TARGET_SIZE MB"
+echo "For the installation, we need to temporarily shrink the log directory size down to $size_value MB"
 echo "This is the amount of space in RAM that Log2Ram will occoupy. Do not worry," 
 echo "after the installation, the log directory will be allowed to grow to well over 5GB if necessary."
 echo "Log2Ram will handle compressing the contents in RAM."
@@ -39,7 +39,7 @@ echo
 echo "I haven't done anything yet. When you are done reading, press any key to continue or CTRL+C to abort."
 read -n 1 -s
 
-TARGET_SIZE=$((TARGET_SIZE * 1024))
+size_value=$((size_value * 1024))
 
 # Clean up any prior runs
 echo "Cleaning up prior installations of More Ram and log2ram..."
@@ -131,12 +131,12 @@ log_cleanup() {
     current_size=$(get_log_size)
     echo "Current log directory size: $current_size KB"
 
-    if [ $current_size -le $TARGET_SIZE ]; then
-        echo "Log directory is already under the target size of $TARGET_SIZE MB."
+    if [ $current_size -le $size_value ]; then
+        echo "Log directory is already under the target size of $size_value MB."
         return
     fi
 
-    while [ $current_size -gt $TARGET_SIZE ]; do
+    while [ $current_size -gt $size_value ]; do
         largest_logs=$(find_largest_logs)
         while read -r log_entry; do
             log_file=$(echo "$log_entry" | awk '{print $2}')
@@ -145,7 +145,7 @@ log_cleanup() {
             setup_logrotate "$log_dir"
             current_size=$(get_log_size)
             echo "Current log directory size after purging: $current_size KB"
-            if [ $current_size -le $TARGET_SIZE ]; then
+            if [ $current_size -le $size_value ]; then
                 echo "Log directory size is now under the target size of 400 MB."
                 return
             fi
