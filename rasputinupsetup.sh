@@ -46,18 +46,19 @@ size_value=$((size_value * 1024))
 # Clean up any prior runs
 echo "Cleaning up prior installations of More Ram and log2ram..."
 
-if systemctl is-active --quiet more-ram.service; then
+if systemctl is-active --quiet zram-swap.service; then
     echo "Stopping and disabling More Ram service..."
-    systemctl stop more-ram.service
-    systemctl disable more-ram.service
+    systemctl stop zram-swap.service
+    systemctl disable zram-swap.service
 fi
 echo "Placing More RAM uninstall script in the correct location..."
 if [ ! -f "/opt/More_RAM/uninstall" ]; then
+    mkdir -p /opt/More_RAM/
     wget https://raw.githubusercontent.com/Botspot/pi-apps/master/apps/More%20RAM/uninstall -O /opt/More_RAM/uninstall
+	chmod +x /opt/More_RAM/uninstall
 fi
 if [ -f "/opt/More_RAM/uninstall" ]; then
     echo "Uninstalling More Ram using the provided uninstall script..."
-    chmod +x /opt/More_RAM/uninstall
     bash /opt/More_RAM/uninstall
 elif [ -d "/opt/More_RAM" ]; then
     echo "Uninstalling More Ram manually..."
