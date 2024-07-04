@@ -23,7 +23,7 @@ To install **Rasputin-up**, simply run the following command:
 ```bash
 curl -L https://raw.githubusercontent.com/henroFall/Rasputin-up/main/rasputinupsetup.sh -o /tmp/rasputinupsetup.sh && sudo bash /tmp/rasputinupsetup.sh
 ```
-There are no options, there is no stopping it. The script is heavily commented so you can see what you're getting yourself into.
+There are no options, there is no stopping it. The script is heavily commented so you can see what you're getting yourself into. Well, OK, there is one option. There is a --uninstall switch, if you want. It will revert your Pie back to what it was before the Mad Monk got ahold of it.
 
 ## Usage
 
