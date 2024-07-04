@@ -1,4 +1,12 @@
 #!/bin/bash
+
+
+# I am ROOT?
+if [ "$EUID" -ne 0 ]; then
+  echo "Please run as root"
+  exit 1
+fi
+
 is_number() {
     [[ $1 =~ ^[0-9]+$ ]]
 }
@@ -38,8 +46,8 @@ echo "Cleaning up prior installations of More Ram and log2ram..."
 
 if systemctl is-active --quiet more-ram.service; then
     echo "Stopping and disabling More Ram service..."
-    sudo systemctl stop more-ram.service
-    sudo systemctl disable more-ram.service
+    systemctl stop more-ram.service
+    systemctl disable more-ram.service
 fi
 echo "Placing More RAM uninstall script in the correct location..."
 if [ ! -f "/opt/More_RAM/uninstall" ]; then
@@ -47,33 +55,33 @@ if [ ! -f "/opt/More_RAM/uninstall" ]; then
 fi
 if [ -f "/opt/More_RAM/uninstall" ]; then
     echo "Uninstalling More Ram using the provided uninstall script..."
-    sudo chmod +x /opt/More_RAM/uninstall
-    sudo bash /opt/More_RAM/uninstall
+    chmod +x /opt/More_RAM/uninstall
+    bash /opt/More_RAM/uninstall
 elif [ -d "/opt/More_RAM" ]; then
     echo "Uninstalling More Ram manually..."
-    sudo rm -rf /opt/More_RAM
-    sudo rm -f /usr/local/bin/more-ram
+    rm -rf /opt/More_RAM
+    rm -f /usr/local/bin/more-ram
 fi
 if systemctl is-active --quiet log2ram.service; then
     echo "Stopping and disabling log2ram service..."
-    sudo systemctl stop log2ram.service
-    sudo systemctl disable log2ram.service
+    systemctl stop log2ram.service
+    systemctl disable log2ram.service
 fi
 if dpkg -l | grep -q log2ram; then
     echo "Uninstalling log2ram..."
-    sudo apt remove -y log2ram
+    apt remove -y log2ram
 fi
 echo "Removing leftover temporary directories..."
-sudo rm -rf /tmp/more_ram_install
+rm -rf /tmp/more_ram_install
 
 # Vacuum journalctl down to 64MB
 echo -n "Vacuuming journalctl logs down to 64MB..."
-sudo journalctl --vacuum-size=64M > /dev/null
+journalctl --vacuum-size=64M > /dev/null
 echo " Done."
 
 # Create logrotate configuration for syslog
 echo "Creating logrotate configuration for syslog..."
-sudo bash -c 'cat <<EOL > /etc/logrotate.d/syslog
+bash -c 'cat <<EOL > /etc/logrotate.d/syslog
 /var/log/syslog {
     daily
     rotate 7
@@ -92,7 +100,7 @@ configure_logrotate() {
     local logrotate_conf="/etc/logrotate.d/$(basename $log_file .log)"
     
     echo "Configuring logrotate for $log_file..."
-    sudo bash -c "cat <<EOL > $logrotate_conf
+    bash -c "cat <<EOL > $logrotate_conf
 $log_file {
     daily
     rotate 7
@@ -144,8 +152,8 @@ log_cleanup() {
         done <<< "$largest_logs"
     done
 }
-sudo find /var/log -type f -name "*.gz" -delete
-sudo find /var/log -type f -name "*.log" -mtime +14 -exec rm -f {} \;
+find /var/log -type f -name "*.gz" -delete
+find /var/log -type f -name "*.log" -mtime +14 -exec rm -f {} \;
 log_cleanup
 
 # Install "More RAM" from the botspot/pi-apps github
@@ -161,15 +169,15 @@ chmod +x /opt/More_RAM/uninstall
 
 # Install log2ram via apt and configure
 echo "Adding log2ram repository and installing log2ram via apt..."
-echo "deb [signed-by=/usr/share/keyrings/azlux-archive-keyring.gpg] http://packages.azlux.fr/debian/ bookworm main" | sudo tee /etc/apt/sources.list.d/azlux.list
-sudo wget -O /usr/share/keyrings/azlux-archive-keyring.gpg https://azlux.fr/repo.gpg
-sudo apt update
-sudo apt install -y log2ram
+echo "deb [signed-by=/usr/share/keyrings/azlux-archive-keyring.gpg] http://packages.azlux.fr/debian/ bookworm main" | tee /etc/apt/sources.list.d/azlux.list
+wget -O /usr/share/keyrings/azlux-archive-keyring.gpg https://azlux.fr/repo.gpg
+apt update
+apt install -y log2ram
 
 echo "Configuring log2ram options..."
-sudo sed -i "s/SIZE=.*$/SIZE=$size_value/" /etc/log2ram.conf
-sudo sed -i 's/MAIL=.*$/MAIL=false/' /etc/log2ram.conf
-sudo sed -i 's/LOG_DISK_SIZE=.*$/LOG_DISK_SIZE=2048/' /etc/log2ram.conf
+sed -i "s/SIZE=.*$/SIZE=$size_value/" /etc/log2ram.conf
+sed -i 's/MAIL=.*$/MAIL=false/' /etc/log2ram.conf
+sed -i 's/LOG_DISK_SIZE=.*$/LOG_DISK_SIZE=2048/' /etc/log2ram.conf
 echo "Updated /etc/log2ram.conf with SIZE=$size_value based on total RAM of $total_ram MB."
 
 # Clean up
@@ -188,4 +196,4 @@ done
 echo "After the reboot, you can check the status of log2ram by running 'systemctl status log2ram'."
 
 # Reboot the system
-sudo reboot
+reboot
