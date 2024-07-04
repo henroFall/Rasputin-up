@@ -1,5 +1,5 @@
 #!/bin/bash
-VER=1.5
+VER=1.6
 
 # I am ROOT?
 if [ "$EUID" -ne 0 ]; then
@@ -187,6 +187,13 @@ echo "deb [signed-by=/usr/share/keyrings/azlux-archive-keyring.gpg] http://packa
 wget -O /usr/share/keyrings/azlux-archive-keyring.gpg https://azlux.fr/repo.gpg
 apt update
 apt install -y log2ram
+if [ ! -f /etc/log2ram.conf ]; then
+    echo "Glitch! log2ram.conf does not exist!"
+    curl -L https://raw.githubusercontent.com/azlux/log2ram/master/log2ram.conf -o /etc/log2ram.conf
+    echo "/etc/log2ram.conf has been downloaded."
+else
+    echo "/etc/log2ram.conf exists."
+fi
 
 echo "Configuring log2ram options..."
 sed -i "s/SIZE=.*$/SIZE=${size_valueMB}M/" /etc/log2ram.conf
