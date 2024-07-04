@@ -1,5 +1,5 @@
 #!/bin/bash
-VER=1.97
+VER=0.98
 
 # I am ROOT?
 if [ "$EUID" -ne 0 ]; then
@@ -128,6 +128,53 @@ echo "Logrotate configuration complete. Logs will be retained for 7 days."
 
 #Log dir purge to SIZE variable
 # Cleanup functions
+echo "Current SIZE value: $size_valueMB MB."
+LOG_DIR="/var/log"
+
+get_log_size() {
+    du -sk $LOG_DIR | cut -f1
+}
+
+find_largest_logs() {
+    find $LOG_DIR -type f -exec du -k {} + | sort -rn | head -n 10
+}
+
+purge_log() {
+    local log_file=$1
+    echo "Purging log file: $log_file"
+    rm -f "$log_file"
+}
+
+setup_logrotate() {
+    local log_dir=$1
+    echo "Setting up logrotate for directory: $log_dir"
+    # Add your logrotate setup commands here
+}
+
+log_cleanup() {
+    current_size=$(get_log_size)
+    echo "Current log directory size: $current_size KB"
+    if [ $current_size -le $size_value ]; then
+        echo "Log directory is already under the target size of $size_value MB."
+        return
+    fi
+
+    while [ $current_size -gt $size_value ]; do
+        largest_logs=$(find_largest_logs)
+        while read -r log_entry; do
+            log_file=$(echo "$log_entry" | awk '{print $2}')
+            log_dir=$(dirname "$log_file")
+            purge_log "$log_file"
+            setup_logrotate "$log_dir"
+            current_size=$(get_log_size)
+            echo "Current log directory size after purging: $current_size KB"
+            if [ $current_size -le $size_value ]; then
+                echo "Log directory size is now under the target size of $size_valueMB MB."
+                return
+            fi
+        done <<< "$largest_logs"
+    done
+}
 get_log_size() {
     du -sk $LOG_DIR | cut -f1
 }
