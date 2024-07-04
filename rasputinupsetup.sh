@@ -54,7 +54,7 @@ if [[ ! " $@ " =~ " --uninstall " ]]; then
 else
     echo "UNINSTALLING..."
 fi
-size_valueMB=size_value
+size_valueMB=$size_value
 size_value=$((size_value * 1024))
 
 echo "Cleaning up prior installations of More Ram and log2ram..."
