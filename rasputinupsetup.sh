@@ -38,7 +38,7 @@ echo "that Log2Ram will occoupy. and how big logs can grow. Log2Ram will handle 
 echo "through runtime. But, at shutdown, the logs will again be pruned to fit into the alloted space."
 echo
 echo "All current logs will be configured to roll over every 7 days. Note that any new applications you install later will need to"
-echo "be manually configured to use logrotate. A future version will automate this at shutdown."
+echo "be manually configured to use logrotate. This happens at shutdown, too."
 echo "Refer to this article for more information on how to use the logrotate.d folder: https://linuxhandbook.com/logrotate/"
 echo
 echo "If you played with an earlier version of this and now I've added something new, the installer is going to remain defensive"
@@ -53,18 +53,19 @@ if [[ ! " $@ " =~ " --uninstall " ]]; then
     read -n 1 -s contkey
 else
     echo "UNINSTALLING..."
+	echo "NOTE: Uninstall DOES NOT remove TightVNC, just Log2RAM and More RAM."
 fi
 size_valueMB=$size_value
 size_value=$((size_value * 1024))
 
-echo "Cleaning up prior installations of More Ram and log2ram..."
+echo "Cleaning up any prior installations of More Ram and log2ram..."
 if systemctl is-active --quiet zram-swap.service; then
     echo "Stopping and disabling More Ram service..."
     systemctl stop zram-swap.service
     systemctl disable zram-swap.service
 fi
 if [ -f "/opt/More_RAM/uninstall" ]; then
-    echo "Uninstalling More Ram using the provided uninstall script..."
+    echo "Uninstalling More Ram..."
     bash /opt/More_RAM/uninstall
     rm -R /opt/More_RAM/
 elif [ ! -d "/opt/More_RAM" ]; then
@@ -433,17 +434,14 @@ Description=TightVNC server
 After=network.target
 
 [Service]
-Type=simple
-User='$USER'
-PAMName=login
-PIDFile=/home/'$USER'/.vnc/%H%i.pid
-ExecStart=/usr/bin/vncserver :1 -geometry 1920x1080 -depth 24
+Type=forking
+User=pi
+ExecStart=/usr/bin/vncserver :1
 ExecStop=/usr/bin/vncserver -kill :1
 
 [Install]
 WantedBy=multi-user.target
 EOF'
-  sudo systemctl daemon-reload
   sudo systemctl enable tightvncserver.service
 }
 
@@ -453,10 +451,12 @@ setup_vnc() {
   elif [[ "$contkey" == "N" ]]; then
     do_stuff=false
   else
-    read -p "Do you want to do it? (yes/no): " response
+    read -p "It looks like you have a desktop enviornment installed. Do you want to install TightVNC? (yes/no): " response
     if [[ "$response" == "yes" ]]; then
+	  echo "OK, I will."
       do_stuff=true
     else
+	  echo "OK, I will not."
       do_stuff=false
     fi
   fi
@@ -466,7 +466,6 @@ setup_vnc() {
     install_tightvnc
     echo "Running TightVNC Server for initial configuration..."
     vncserver :1
-    vncserver -kill :1
     create_service
     echo "TightVNC Server has been installed and configured. It will start automatically at boot."
   else
