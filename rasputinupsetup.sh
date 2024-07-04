@@ -1,5 +1,5 @@
 #!/bin/bash
-VER=1.93
+VER=1.94
 
 # I am ROOT?
 if [ "$EUID" -ne 0 ]; then
@@ -183,7 +183,9 @@ RETRY_DELAY=10
 attempt=0
 while [ $attempt -lt $RETRY_LIMIT ]; do
     echo "Attempt $(($attempt+1)) of $RETRY_LIMIT to install $PACKAGE_NAME"
-     sudo apt-get update && sudo apt-get install -y $PACKAGE_NAME
+    apt install -y $PACKAGE_NAME
+    
+    # Check if the install command was successful
     if [ $? -eq 0 ]; then
         echo "$PACKAGE_NAME installed successfully."
         break
@@ -193,8 +195,13 @@ while [ $attempt -lt $RETRY_LIMIT ]; do
         sleep $RETRY_DELAY
     fi
 done
-echo "Failed to install $PACKAGE_NAME after $RETRY_LIMIT attempts."
-exit 1
+
+if [ $attempt -eq $RETRY_LIMIT ]; then
+    echo "Failed to install $PACKAGE_NAME after $RETRY_LIMIT attempts."
+    exit 1
+else
+    echo
+fi
 if [ ! -f /etc/log2ram.conf ]; then
     echo "Glitch! log2ram.conf does not exist!"
     curl -L https://raw.githubusercontent.com/azlux/log2ram/master/log2ram.conf -o /etc/log2ram.conf
