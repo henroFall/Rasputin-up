@@ -1,5 +1,5 @@
 #!/bin/bash
-VER=0.986
+VER=0.987
 
 # I am ROOT?
 if [ "$EUID" -ne 0 ]; then
@@ -75,11 +75,29 @@ if systemctl is-active --quiet log2ram.service; then
     systemctl stop log2ram.service
     systemctl disable log2ram.service
 fi
+
 if dpkg -l | grep -q log2ram; then
     echo "Uninstalling log2ram..."
     apt remove -y log2ram
     echo "Removing conf file."
     rm -f /etc/log2ram.conf
+	RC_LOCAL_PATH="/etc/rc.local"
+	if [ ! -f "$RC_LOCAL_PATH" ]; then
+		echo "$RC_LOCAL_PATH does not exist. Nothing to remove."
+		exit 0
+	fi
+	# Define the start and end markers of the script block to remove
+	START_MARKER="# Check the status of log2ram"
+	END_MARKER="echo -e \"Use 'systemctl status log2ram' for further information.\""
+	# Create a backup of the original rc.local
+	cp "$RC_LOCAL_PATH" "$RC_LOCAL_PATH.bak"
+	# Check if the start and end markers are present in the file
+	if grep -q "$START_MARKER" "$RC_LOCAL_PATH" && grep -q "$END_MARKER" "$RC_LOCAL_PATH"; then
+		sed -i "/$START_MARKER/,/$END_MARKER/d" "$RC_LOCAL_PATH"
+		echo "The log2ram status check script modification has been removed from $RC_LOCAL_PATH"
+	else
+		echo "The log2ram status check modification is not present in $RC_LOCAL_PATH. Nothing to remove."
+	fi
 fi
 echo "Removing leftover temporary directories..."
 rm -rf /tmp/more_ram_install
@@ -297,7 +315,7 @@ else
     echo
 fi
 if [ ! -f /etc/log2ram.conf ]; then
-    echo "(Expected) glitch! log2ram.conf does not exist after install from France!"
+    echo "(Expected) glitch! log2ram.conf does not exist after install from the frenchie!"
     echo "Grabbing conf file directly..."
     curl -L https://raw.githubusercontent.com/azlux/log2ram/master/log2ram.conf -o /etc/log2ram.conf
     echo "/etc/log2ram.conf has been downloaded."
@@ -309,6 +327,34 @@ sed -i "s/SIZE=.*$/SIZE=${size_valueMB}M/" /etc/log2ram.conf
 sed -i 's/MAIL=.*$/MAIL=false/' /etc/log2ram.conf
 sed -i 's/LOG_DISK_SIZE=.*$/LOG_DISK_SIZE=2048/' /etc/log2ram.conf
 echo "Updated /etc/log2ram.conf with SIZE=$size_valueMB MB based on total RAM of $total_ram MB."
+
+RC_LOCAL_PATH="/etc/rc.local"
+if [ ! -f "$RC_LOCAL_PATH" ]; then
+    echo -e "#!/bin/bash\n\nexit 0" > "$RC_LOCAL_PATH"
+    chmod +x "$RC_LOCAL_PATH"
+fi
+
+systemctl enable rc-local
+chmod +x "$RC_LOCAL_PATH"
+
+check_script=$(cat <<'EOF'
+service_status=$(systemctl is-active log2ram)
+if [ "$service_status" != "active" ]; then
+    echo -e "LOG2RAM service has a \e[31mfailure\e[0m and is not working."
+    echo -e "Use 'systemctl status log2ram' for further information."
+fi
+EOF
+)
+
+if ! grep -q "Check the status of log2ram" "$RC_LOCAL_PATH"; then
+    sed -i '/^exit 0$/d' "$RC_LOCAL_PATH"
+    echo "$check_script" >> "$RC_LOCAL_PATH"
+    echo "exit 0" >> "$RC_LOCAL_PATH"
+    echo "You will be notified if LOG2RAM fails to start by a modification made to $RC_LOCAL_PATH"
+	echo "The --uninstall switch will remove that modification, if wanted."
+else
+    echo "The log2ram status check script is already present in $RC_LOCAL_PATH, no changes made."
+fi
 
 target_script="/etc/log2ramdown.sh"
 
@@ -466,7 +512,7 @@ echo "After the reboot, you can check the status of tightvncserver by running 's
 echo
 echo "Rasputin-up setup script completed successfully! The system will now reboot in 10 seconds. Press CTRL+C to abort."
 for i in $(seq 10 -1 1); do
-    echo -ne "\rRebooting in $i seconds..."
+    echo -ne "\rRasputin' is rebootin' in $i seconds..."
     sleep 1
 done
 
