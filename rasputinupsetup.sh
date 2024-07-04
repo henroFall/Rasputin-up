@@ -1,5 +1,5 @@
 #!/bin/bash
-VER=1.3
+VER=1.4
 
 # I am ROOT?
 if [ "$EUID" -ne 0 ]; then
@@ -39,7 +39,14 @@ echo "If you played with an earlier version of this and now I've added something
 echo "against anything leftover from prior installs, and clean up accordingly. If you run it twice by accident, it won't hurt, either."
 echo
 echo "I haven't done anything yet. When you are done reading, press any key to continue or CTRL+C to abort."
-read -n 1 -s
+f [[ ! " $@ " =~ " --uninstall " ]]; then
+    echo "Uninstall flag detected."
+    read -n 1 -s
+else
+    echo "UNINSTALLING..."
+    # Add the code to do the thing here
+fi
+
 size_valueMB=size_value
 size_value=$((size_value * 1024))
 
@@ -78,6 +85,10 @@ fi
 echo "Removing leftover temporary directories..."
 rm -rf /tmp/more_ram_install
 
+if [[ " $@ " =~ " --uninstall " ]]; then
+    echo "Uninstall flag detected. Exiting the script."
+    exit 0
+fi
 # Vacuum journalctl down to 32MB
 echo -n "Vacuuming journalctl logs down to 32MB..."
 journalctl --vacuum-size=64M > /dev/null
@@ -181,7 +192,7 @@ echo "Configuring log2ram options..."
 sed -i "s/SIZE=.*$/SIZE=${size_valueMB}M/" /etc/log2ram.conf
 sed -i 's/MAIL=.*$/MAIL=false/' /etc/log2ram.conf
 sed -i 's/LOG_DISK_SIZE=.*$/LOG_DISK_SIZE=2048/' /etc/log2ram.conf
-echo "Updated /etc/log2ram.conf with SIZE=$size_value based on total RAM of $total_ram MB."
+echo "Updated /etc/log2ram.conf with SIZE=${size_valueMB}M based on total RAM of $total_ram MB."
 
 target_script="/etc/log2ramdown.sh"
 
