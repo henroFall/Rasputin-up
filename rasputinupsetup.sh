@@ -48,7 +48,7 @@ echo
 echo "I haven't done anything yet. When you are done reading, PRESS:"
 echo "  V,             to install tightvncserver if a desktop is present, with no further questions"
 echo "  N,             to NOT install tightvnc   if a desktop is present, with no further questions"
-echo "  ANY OTHER KEY, to continue and be prompted for VNC install later"
+echo "  ANY OTHER KEY, to continue and be prompted for VNC install later (unless uninstalling, in which case I keep going now)"
 if [[ ! " $@ " =~ " --uninstall " ]]; then
     read -n 1 -s contkey
 else
