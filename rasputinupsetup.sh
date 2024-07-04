@@ -59,6 +59,7 @@ fi
 if [ -f "/opt/More_RAM/uninstall" ]; then
     echo "Uninstalling More Ram using the provided uninstall script..."
     bash /opt/More_RAM/uninstall
+    rm -R /opt/More_RAM/
 elif [ -d "/opt/More_RAM" ]; then
     echo "More Ram not installed by me, or does not exist."
 fi
