@@ -26,19 +26,31 @@ echo "Welcome to the Rasputin-up setup script."
 echo "----------------------------------------"
 echo "Version: $VER"
 echo
-echo "For the installation, we need to temporarily shrink the log directory size down to $size_value MB"
+echo "Why am I doing this? Well, this is something I run on every SBC as I get started. So you're here to do what I do."
+echo "Basically, you'll save wear and tear on the SD card and give an overall speed boost to alot of the day-to-day operations."
+echo "You're doing this by moving the swap file to a compressed ram disk (translation, small ram footprint, swap when needed to compressed RAM vs burning the SD),"
+echo "reconfiguring logging and moving all of the log files to a RAM disk (which is regularly flushed to nonvolitle storage), and also,"
+echo "if a desktop GUI is detected, you can optionally install Tightvnc instead Real. Why? Because my reasons. Mostly MobaXTerm."
+echo -e "\e]8;;https://mobaxterm.mobatek.net/\e\\MobaXTerm\e]8;;\e\\"
+echo
+echo "For the installation, we need to shrink the log directory size down to $size_value MB"
 echo "This is the amount of space in RAM that Log2Ram will occoupy. and how big logs can grow. "
-echo "Log2Ram will handle compressing the contents in RAM."
+echo "Log2Ram will handle compressing the contents in RAM, so logs can grow through runtime."
+echo "But, at shutdown, the logs will again be pruned to fit into the alloted space."
+echo
 echo "All current logs will be configured to roll over every 7 days. Note that any new applications"
-echo "you install later will need to be manually configured to use logrotate."
+echo "you install later will need to be manually configured to use logrotate. A future version will automate this at shutdown."
 echo "Refer to this article for more information on how to use the logrotate.d folder: https://linuxhandbook.com/logrotate/"
 echo
 echo "If you played with an earlier version of this and now I've added something new, the installer is going to remain defensive"
 echo "against anything leftover from prior installs, and clean up accordingly. If you run it twice by accident, it won't hurt, either."
 echo
-echo "I haven't done anything yet. When you are done reading, press any key to continue or CTRL+C to abort."
+echo "I haven't done anything yet. When you are done reading, PRESS:"
+echo "  V,             to install tightvncserver if a desktop is present, with no further questions"
+echo "  N,             to NOT install tightvnc   if a desktop is present, with no further questions"
+echo "  ANY OTHER KEY, to continue and be prompted for VNC install later"
 if [[ ! " $@ " =~ " --uninstall " ]]; then
-    read -n 1 -s
+    read -n 1 -s contkey
 else
     echo "UNINSTALLING..."
 fi
@@ -363,7 +375,91 @@ EOF
 chmod +x "$target_script"
 sudo sed -i "/^ExecStop=\/usr\/local\/bin\/log2ram stop/a ExecStopPost=/etc/log2ramdown.sh" /etc/systemd/system/log2ram.service
 echo "Shutdown script created and made executable at $target_script. Logs will be purged if needed at each service shutdown."
+
+check_desktop_environment() {
+  if [[ -n "$XDG_CURRENT_DESKTOP" || -n "$DESKTOP_SESSION" || "$(pgrep -f 'gnome-session|startkde|xfce4-session|lxsession|mate-session|lxqt-session|cinnamon-session|budgie-desktop|deepin-session|sway|i3')" ]]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+remove_default_vnc() {
+  if dpkg -l | grep -q realvnc-vnc-server; then
+    echo "Raspberry Pi's default VNC server detected. Removing it..."
+    sudo apt-get remove -y realvnc-vnc-server
+  else
+    echo "Raspberry Pi's default VNC server not detected."
+  fi
+}
+
+install_tightvnc() {
+  echo "Installing TightVNC Server..."
+  sudo apt-get update
+  sudo apt-get install -y tightvncserver
+}
+
+create_service() {
+  echo "Creating systemd service for TightVNC Server..."
+  sudo bash -c 'cat > /etc/systemd/system/tightvncserver.service <<EOF
+[Unit]
+Description=TightVNC server
+After=network.target
+
+[Service]
+Type=simple
+User='$USER'
+PAMName=login
+PIDFile=/home/'$USER'/.vnc/%H%i.pid
+ExecStart=/usr/bin/vncserver :1 -geometry 1920x1080 -depth 24
+ExecStop=/usr/bin/vncserver -kill :1
+
+[Install]
+WantedBy=multi-user.target
+EOF'
+  sudo systemctl daemon-reload
+  sudo systemctl enable tightvncserver.service
+}
+
+setup_vnc() {
+  if [[ "$contkey" == "V" ]]; then
+    do_stuff=true
+  elif [[ "$contkey" == "N" ]]; then
+    do_stuff=false
+  else
+    read -p "Do you want to do it? (yes/no): " response
+    if [[ "$response" == "yes" ]]; then
+      do_stuff=true
+    else
+      do_stuff=false
+    fi
+  fi
+
+  if [[ "$do_stuff" == true ]]; then
+    remove_default_vnc
+    install_tightvnc
+    echo "Running TightVNC Server for initial configuration..."
+    vncserver :1
+    vncserver -kill :1
+    create_service
+    echo "TightVNC Server has been installed and configured. It will start automatically at boot."
+  else
+    echo "Skipping the installation and configuration of TightVNC Server."
+  fi
+}
+
+if check_desktop_environment; then
+  echo "Desktop environment detected."
+  setup_vnc
+else
+  echo "No desktop environment detected. Skipping VNC server setup."
+fi
+
+echo 
+echo "Done."
+echo "After the reboot, you can check the status of zram-swap by running 'zramctl'."
 echo "After the reboot, you can check the status of log2ram by running 'systemctl status log2ram'."
+echo "After the reboot, you can check the status of tightvncserver by running 'systemctl status tightvncserver'."
 
 echo "Setup script completed successfully. The system will now reboot in 10 seconds. Press CTRL+C to abort."
 for i in $(seq 10 -1 1); do
