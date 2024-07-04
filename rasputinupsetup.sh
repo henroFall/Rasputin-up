@@ -69,6 +69,7 @@ fi
 if dpkg -l | grep -q log2ram; then
     echo "Uninstalling log2ram..."
     apt remove -y log2ram
+	rm -f /etc/log2ram.conf
 fi
 echo "Removing leftover temporary directories..."
 rm -rf /tmp/more_ram_install
@@ -178,11 +179,6 @@ sed -i 's/MAIL=.*$/MAIL=false/' /etc/log2ram.conf
 sed -i 's/LOG_DISK_SIZE=.*$/LOG_DISK_SIZE=2048/' /etc/log2ram.conf
 echo "Updated /etc/log2ram.conf with SIZE=$size_value based on total RAM of $total_ram MB."
 
-
-
-#!/bin/bash
-
-# Path to the script to be created
 target_script="/etc/log2ramdown.sh"
 
 # Create the script content
@@ -248,7 +244,8 @@ log_cleanup
 EOF
 
 chmod +x "$target_script"
-echo "Shutdown script created and made executable at $target_script"
+sudo sed -i "/^ExecStop=\/usr\/local\/bin\/log2ram stop/a ExecStopPost=/etc/log2ramdown.sh" /etc/systemd/system/log2ram.service
+echo "Shutdown script created and made executable at $target_script. Logs will be purged if needed at each service shutdown."
 echo "After the reboot, you can check the status of log2ram by running 'systemctl status log2ram'."
 
 echo "Setup script completed successfully. The system will now reboot in 10 seconds. Press CTRL+C to abort."
