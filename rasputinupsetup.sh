@@ -1,5 +1,5 @@
 #!/bin/bash
-VER=0.987
+VER=0.988
 
 # I am ROOT?
 if [ "$EUID" -ne 0 ]; then
@@ -119,6 +119,8 @@ bash -c 'cat <<EOL > /etc/logrotate.d/syslog
     rotate 7
     missingok
     notifempty
+	delaycompress
+    compress
     postrotate
         /usr/lib/rsyslog/rsyslog-rotate
     endscript
@@ -134,6 +136,8 @@ $log_file {
     rotate 7
     missingok
     notifempty
+	delaycompress
+    compress
     postrotate
         /usr/bin/systemctl reload rsyslog > /dev/null 2>&1 || true
     endscript
