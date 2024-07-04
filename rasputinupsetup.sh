@@ -1,5 +1,5 @@
 #!/bin/bash
-VER=1.2
+VER=1.3
 
 # I am ROOT?
 if [ "$EUID" -ne 0 ]; then
@@ -135,7 +135,7 @@ log_cleanup() {
     current_size=$(get_log_size)
     echo "Current log directory size: $current_size KB"
     if [ $current_size -le $size_value ]; then
-        echo "Log directory is already under the target size of $size_value MB."
+        echo "Log directory is already under the target size of $size_valueMB MB."
         return
     fi
 
