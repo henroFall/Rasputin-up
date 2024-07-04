@@ -5,15 +5,16 @@
 
 ## Introduction
 
-Welcome to **Rasputin-up**! I cobbled this together becuase I got tired of doing this all manually every time I built a new SBC. For now, I've got log2ram and the pi-apps version of zram-swap to reduce wear on your SD card and reduce overall I/O overhead. I'm also configure all the log files I can find to roll every 7 days. 
+Welcome to **Rasputin-up**! I cobbled this together becuase I got tired of doing this all manually every time I built a new SBC. For now, I've got log2ram and the pi-apps version of zram-swap to reduce wear on your SD card and reduce overall I/O overhead. I'm also configure all the log files I can find to roll every 7 days. Plus TightVNC, cause reasons.
 
-You can technically run this on any Debian / Ubuntu based thing, but the problems this solves affect SBCs (1GB and up) with SD based main storage. Plus, I thought the name was clever.
+You can technically run this on any Debian / Ubuntu based thing, but the problems this solves affect SBCs (1GB and up) with SD based main storage. Plus, I thought the name was clever. Try to say it out loud. I think it works. 
 
 ## Features
 
   - **Log Management**: Setting the system journal (and anything else I find) to wrap after 7 days.
   - **SD Card Optimization**: Utilize log2ram to reduce writes to SD Card.
   - **SWAP Optimization**: Sure, swapping to RAM is stupid. I could go on and on. BUT - swapping to an SD is also stupid. And, no swap on a SBC is pretty hard, and mostly stupid. Hence, ZRAM-SWAP. You'll lose a couple hundred meg of RAM for lots of usable swap space, it works for me.
+  - - **TightVNC**: Why? [You know why](https://youtu.be/qraa_1EX9GY?si=78f3KR4CXlxlk74m). But, seriously, I use [MobaXTerm](https://mobaxterm.mobatek.net/demo.html) and it doesn't like RealVNC. Plus, RealVNC lost me at "pricing." So I was constantly running the TightVNC installer, now it's in here for me, and you!
 
 ## Installation
 
