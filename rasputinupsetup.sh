@@ -1,5 +1,5 @@
 #!/bin/bash
-VER=0.985
+VER=0.986
 
 # I am ROOT?
 if [ "$EUID" -ne 0 ]; then
@@ -219,7 +219,7 @@ cd /tmp/more_ram_install
 wget https://raw.githubusercontent.com/Botspot/pi-apps/master/apps/More%20RAM/install
 bash install
 
-# Put uninstaller in place
+echo "Place and patch uninstaller for More Ram..."
 curl -L https://github.com/Botspot/pi-apps/raw/master/apps/More%20RAM/uninstall -o /tmp/uninstall
 functions=$(cat <<'EOF'
 error() {
@@ -272,7 +272,6 @@ RETRY_LIMIT=5
 RETRY_DELAY=10
 attempt=0
 while [ $attempt -lt $RETRY_LIMIT ]; do
-    echo "Attempt $(($attempt+1)) of $RETRY_LIMIT to install $PACKAGE_NAME"
     apt install -y $PACKAGE_NAME
     
     # Check if the install command was successful
@@ -287,8 +286,13 @@ while [ $attempt -lt $RETRY_LIMIT ]; do
 done
 
 if [ $attempt -eq $RETRY_LIMIT ]; then
-    echo "Failed to install $PACKAGE_NAME after $RETRY_LIMIT attempts."
-    exit 1
+    echo
+	echo "Failed to install $PACKAGE_NAME after $RETRY_LIMIT attempts."
+	echo "Rolling back..."
+	bash /tmp/rasputinupsetup.sh --uninstall
+	echo
+    echo "REBOOT NOW!"
+	exit 1
 else
     echo
 fi
