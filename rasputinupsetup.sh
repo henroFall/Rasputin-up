@@ -1,5 +1,5 @@
 #!/bin/bash
-VER=1.4
+VER=1.5
 
 # I am ROOT?
 if [ "$EUID" -ne 0 ]; then
@@ -39,7 +39,7 @@ echo "If you played with an earlier version of this and now I've added something
 echo "against anything leftover from prior installs, and clean up accordingly. If you run it twice by accident, it won't hurt, either."
 echo
 echo "I haven't done anything yet. When you are done reading, press any key to continue or CTRL+C to abort."
-f [[ ! " $@ " =~ " --uninstall " ]]; then
+if [[ ! " $@ " =~ " --uninstall " ]]; then
     echo "Uninstall flag detected."
     read -n 1 -s
 else
