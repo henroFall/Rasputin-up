@@ -453,10 +453,11 @@ fi
 
 echo 
 echo "Done."
+echo
 echo "After the reboot, you can check the status of zram-swap by running 'zramctl'."
 echo "After the reboot, you can check the status of log2ram by running 'systemctl status log2ram'."
 echo "After the reboot, you can check the status of tightvncserver by running 'systemctl status tightvncserver'."
-
+echo
 echo "Rasputin-up setup script completed successfully! The system will now reboot in 10 seconds. Press CTRL+C to abort."
 for i in $(seq 10 -1 1); do
     echo -ne "\rRebooting in $i seconds..."
