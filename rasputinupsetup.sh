@@ -1,5 +1,5 @@
 #!/bin/bash
-VER=1.92
+VER=1.93
 
 # I am ROOT?
 if [ "$EUID" -ne 0 ]; then
@@ -186,7 +186,7 @@ while [ $attempt -lt $RETRY_LIMIT ]; do
      sudo apt-get update && sudo apt-get install -y $PACKAGE_NAME
     if [ $? -eq 0 ]; then
         echo "$PACKAGE_NAME installed successfully."
-        exit 0
+        break
     else
         echo "Error installing $PACKAGE_NAME. Retrying in $RETRY_DELAY seconds..."
         attempt=$(($attempt+1))
