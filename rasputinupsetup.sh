@@ -1,5 +1,5 @@
 #!/bin/bash
-VER=0.983
+VER=0.984
 
 # I am ROOT?
 if [ "$EUID" -ne 0 ]; then
@@ -27,16 +27,23 @@ echo "----------------------------------------"
 echo "Version: $VER"
 echo
 echo "Why am I doing this? Well, this is something I run on every SBC as I get started. So you're here to do what I do."
-echo "Basically, you'll save wear and tear on the SD card and give an overall speed boost to alot of the day-to-day operations. You're doing this by moving the swap file to a compressed ram disk (translation, small ram footprint, swap when needed to compressed RAM vs burning the SD), reconfiguring logging and moving all of the log files to a RAM disk (which is regularly flushed to nonvolitle storage), and also, if a desktop GUI is detected, you can optionally install Tightvnc instead Real. Why? Because my reasons. Mostly MobaXTerm."
-echo -e "\e]8;;https://mobaxterm.mobatek.net/\e\\MobaXTerm\e]8;;\e\\"
+echo "Basically, you'll save wear and tear on the SD card and give an overall speed boost to alot of the day-to-day operations."
+echo "You're doing this by moving the swap file to a compressed ram disk (translation, small ram footprint, swap when needed to"
+echo "compressed RAM vs burning the SD), reconfiguring and moving all of the log files to a RAM disk (which is regularly flushed"
+echo "to nonvolitle storage), and also, if a desktop GUI is detected, you can optionally install Tightvnc instead Real."
+echo "Why? Because my reasons. Mostly MobaXTerm. - https://mobaxterm.mobatek.net/demo.html"
 echo
-echo "For the installation, we need to shrink the log directory size down to $size_value MB. This is the amount of space in RAM that Log2Ram will occoupy. and how big logs can grow. "
-echo "Log2Ram will handle compressing the contents in RAM, so logs can grow through runtime. But, at shutdown, the logs will again be pruned to fit into the alloted space."
+echo "For the installation, we need to shrink the log directory size down to $size_value MB. This is the amount of space in RAM"
+echo "that Log2Ram will occoupy. and how big logs can grow. Log2Ram will handle compressing the contents in RAM, so logs can grow"
+echo "through runtime. But, at shutdown, the logs will again be pruned to fit into the alloted space."
 echo
-echo "All current logs will be configured to roll over every 7 days. Note that any new applications you install later will need to be manually configured to use logrotate. A future version will automate this at shutdown."
+echo "All current logs will be configured to roll over every 7 days. Note that any new applications you install later will need to"
+echo "be manually configured to use logrotate. A future version will automate this at shutdown."
 echo "Refer to this article for more information on how to use the logrotate.d folder: https://linuxhandbook.com/logrotate/"
 echo
-echo "If you played with an earlier version of this and now I've added something new, the installer is going to remain defensive against anything leftover from prior installs, and clean up accordingly. If you run it twice by accident, it won't hurt, either." 
+echo "If you played with an earlier version of this and now I've added something new, the installer is going to remain defensive"
+echo "against anything leftover from prior installs, and clean up accordingly. If you run it twice by accident, it won't hurt, either."
+echo "You can optionally run with --uninstall to clean up and exit."
 echo
 echo "I haven't done anything yet. When you are done reading, PRESS:"
 echo "  V,             to install tightvncserver if a desktop is present, with no further questions"
@@ -450,12 +457,10 @@ echo "After the reboot, you can check the status of zram-swap by running 'zramct
 echo "After the reboot, you can check the status of log2ram by running 'systemctl status log2ram'."
 echo "After the reboot, you can check the status of tightvncserver by running 'systemctl status tightvncserver'."
 
-echo "Setup script completed successfully. The system will now reboot in 10 seconds. Press CTRL+C to abort."
+echo "Rasputin-up setup script completed successfully! The system will now reboot in 10 seconds. Press CTRL+C to abort."
 for i in $(seq 10 -1 1); do
     echo -ne "\rRebooting in $i seconds..."
     sleep 1
 done
 
-
-# Reboot the system
 reboot
