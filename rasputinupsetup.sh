@@ -1,5 +1,5 @@
 #!/bin/bash
-
+VER=1.0
 
 # I am ROOT?
 if [ "$EUID" -ne 0 ]; then
@@ -25,6 +25,7 @@ fi
 echo "Welcome to the Rasputin-up setup script."
 echo "----------------------------------------"
 echo
+echo "Version: $VER"
 echo "For the installation, we need to temporarily shrink the log directory size down to $size_value MB"
 echo "This is the amount of space in RAM that Log2Ram will occoupy. and how big logs can grow. "
 echo "Log2Ram will handle compressing the contents in RAM."
