@@ -1,16 +1,14 @@
 #!/bin/bash
-VER=0.98
+VER=0.981
 
 # I am ROOT?
 if [ "$EUID" -ne 0 ]; then
   echo "Please run as root"
   exit 1
 fi
-
 is_number() {
     [[ $1 =~ ^[0-9]+$ ]]
 }
-
 LOG_DIR="/var/log"
 # Get the total amount of RAM in MB
 total_ram=$(free -m | awk '/^Mem:/{print $2}')
@@ -44,13 +42,10 @@ if [[ ! " $@ " =~ " --uninstall " ]]; then
 else
     echo "UNINSTALLING..."
 fi
-
 size_valueMB=size_value
 size_value=$((size_value * 1024))
 
-# Clean up any prior runs
 echo "Cleaning up prior installations of More Ram and log2ram..."
-
 if systemctl is-active --quiet zram-swap.service; then
     echo "Stopping and disabling More Ram service..."
     systemctl stop zram-swap.service
@@ -60,7 +55,7 @@ if [ -f "/opt/More_RAM/uninstall" ]; then
     echo "Uninstalling More Ram using the provided uninstall script..."
     bash /opt/More_RAM/uninstall
     rm -R /opt/More_RAM/
-elif [ -d "/opt/More_RAM" ]; then
+elif [ ! -d "/opt/More_RAM" ]; then
     echo "More Ram not installed by me, or does not exist."
 fi
 if systemctl is-active --quiet log2ram.service; then
