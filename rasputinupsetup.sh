@@ -1,5 +1,5 @@
 #!/bin/bash
-VER=1.1
+VER=1.2
 
 # I am ROOT?
 if [ "$EUID" -ne 0 ]; then
