@@ -1,5 +1,5 @@
 #!/bin/bash
-VER=1.9
+VER=1.91
 
 # I am ROOT?
 if [ "$EUID" -ne 0 ]; then
@@ -178,7 +178,24 @@ echo "Adding log2ram repository and installing log2ram via apt..."
 echo "deb [signed-by=/usr/share/keyrings/azlux-archive-keyring.gpg] http://packages.azlux.fr/debian/ bookworm main" | tee /etc/apt/sources.list.d/azlux.list
 wget -O /usr/share/keyrings/azlux-archive-keyring.gpg https://azlux.fr/repo.gpg
 apt update
-apt install -y log2ram
+PACKAGE_NAME="log2ram"
+RETRY_LIMIT=5
+RETRY_DELAY=10
+attempt=0
+while [ $attempt -lt $RETRY_LIMIT ]; do
+    echo "Attempt $(($attempt+1)) of $RETRY_LIMIT to install $PACKAGE_NAME"
+     sudo apt-get update && sudo apt-get install -y $PACKAGE_NAME
+    if [ $? -eq 0 ]; then
+        echo "$PACKAGE_NAME installed successfully."
+        exit 0
+    else
+        echo "Error installing $PACKAGE_NAME. Retrying in $RETRY_DELAY seconds..."
+        attempt=$(($attempt+1))
+        sleep $RETRY_DELAY
+    fi
+done
+echo "Failed to install $PACKAGE_NAME after $RETRY_LIMIT attempts."
+exit 1
 if [ ! -f /etc/log2ram.conf ]; then
     echo "Glitch! log2ram.conf does not exist!"
     curl -L https://raw.githubusercontent.com/azlux/log2ram/master/log2ram.conf -o /etc/log2ram.conf
