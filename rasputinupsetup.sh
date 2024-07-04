@@ -1,5 +1,5 @@
 #!/bin/bash
-VER=1.8
+VER=1.9
 
 # I am ROOT?
 if [ "$EUID" -ne 0 ]; then
@@ -187,7 +187,7 @@ else
     echo "/etc/log2ram.conf exists."
 fi
 echo "Configuring log2ram options..."
-sed -i "s/SIZE=.*$/SIZE=${size_valueMB}M/" /etc/log2ram.conf
+sed -i "s/SIZE=.*$/SIZE={$size_valueMB}M/" /etc/log2ram.conf
 sed -i 's/MAIL=.*$/MAIL=false/' /etc/log2ram.conf
 sed -i 's/LOG_DISK_SIZE=.*$/LOG_DISK_SIZE=2048/' /etc/log2ram.conf
 echo "Updated /etc/log2ram.conf with SIZE={$size_valueMB}M based on total RAM of $total_ram MB."
