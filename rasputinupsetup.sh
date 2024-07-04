@@ -1,5 +1,5 @@
 #!/bin/bash
-VER=0.988
+VER=0.989
 
 # I am ROOT?
 if [ "$EUID" -ne 0 ]; then
@@ -81,7 +81,8 @@ if dpkg -l | grep -q log2ram; then
     apt remove -y log2ram
     echo "Removing conf file."
     rm -f /etc/log2ram.conf
-	RC_LOCAL_PATH="/etc/rc.local"
+	#!/bin/bash
+
 	RC_LOCAL_PATH="/etc/rc.local"
 	BACKUP_PATH="/etc/rc.local.bak"
 
@@ -93,11 +94,12 @@ if dpkg -l | grep -q log2ram; then
 	cp "$RC_LOCAL_PATH" "$BACKUP_PATH"
 
 	START_MARKER='service_status=$(systemctl is-active log2ram)'
-	END_MARKER="echo -e \"Use 'systemctl status log2ram' for further information.\"  > /dev/console"
+	END_MARKER='Use '\''systemctl status log2ram'\'' for further information.'
 
 	sed -i "/$START_MARKER/,/$END_MARKER/d" "$RC_LOCAL_PATH"
 
 	echo "The log2ram status check script has been removed from $RC_LOCAL_PATH"
+
 
 fi
 echo "Removing leftover temporary directories..."
