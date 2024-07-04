@@ -82,22 +82,23 @@ if dpkg -l | grep -q log2ram; then
     echo "Removing conf file."
     rm -f /etc/log2ram.conf
 	RC_LOCAL_PATH="/etc/rc.local"
+	RC_LOCAL_PATH="/etc/rc.local"
+	BACKUP_PATH="/etc/rc.local.bak"
+
 	if [ ! -f "$RC_LOCAL_PATH" ]; then
 		echo "$RC_LOCAL_PATH does not exist. Nothing to remove."
 		exit 0
 	fi
-	# Define the start and end markers of the script block to remove
-	START_MARKER="# Check the status of log2ram"
-	END_MARKER="echo -e \"Use 'systemctl status log2ram' for further information.\""
-	# Create a backup of the original rc.local
-	cp "$RC_LOCAL_PATH" "$RC_LOCAL_PATH.bak"
-	# Check if the start and end markers are present in the file
-	if grep -q "$START_MARKER" "$RC_LOCAL_PATH" && grep -q "$END_MARKER" "$RC_LOCAL_PATH"; then
-		sed -i "/$START_MARKER/,/$END_MARKER/d" "$RC_LOCAL_PATH"
-		echo "The log2ram status check script modification has been removed from $RC_LOCAL_PATH"
-	else
-		echo "The log2ram status check modification is not present in $RC_LOCAL_PATH. Nothing to remove."
-	fi
+
+	cp "$RC_LOCAL_PATH" "$BACKUP_PATH"
+
+	START_MARKER='service_status=$(systemctl is-active log2ram)'
+	END_MARKER="echo -e \"Use 'systemctl status log2ram' for further information.\"  > /dev/console"
+
+	sed -i "/$START_MARKER/,/$END_MARKER/d" "$RC_LOCAL_PATH"
+
+	echo "The log2ram status check script has been removed from $RC_LOCAL_PATH"
+
 fi
 echo "Removing leftover temporary directories..."
 rm -rf /tmp/more_ram_install
