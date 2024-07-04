@@ -338,9 +338,6 @@ if [ ! -f "$RC_LOCAL_PATH" ]; then
     chmod +x "$RC_LOCAL_PATH"
 fi
 
-systemctl enable rc-local
-chmod +x "$RC_LOCAL_PATH"
-
 check_script=$(cat <<'EOF'
 service_status=$(systemctl is-active log2ram)
 if [ "$service_status" != "active" ]; then
