@@ -22,6 +22,8 @@ elif [ "$total_ram" -ge 4096 ]; then
 else
     size_value="256"
 fi
+echo
+echo
 echo "Welcome to the Rasputin-up setup script."
 echo "----------------------------------------"
 echo
