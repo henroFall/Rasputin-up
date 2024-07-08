@@ -465,8 +465,10 @@ setup_vnc() {
   if [[ "$do_stuff" == true ]]; then
     remove_default_vnc
     install_tightvnc
-    echo "Running TightVNC Server for initial configuration..."
-    vncserver :1
+    
+    original_user=$SUDO_USER
+    echo "Running the vncserver command as the original user: ($original_user)..."
+    sudo -u $original_user vncserver :1
     create_service
     echo "TightVNC Server has been installed and configured. It will start automatically at boot."
 	#echo "TightVNC Installer is out of service. Please try back later."
