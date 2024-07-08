@@ -436,6 +436,7 @@ After=network.target
 [Service]
 Type=forking
 User=pi
+Group=pi
 ExecStart=/usr/bin/vncserver :1
 ExecStop=/usr/bin/vncserver -kill :1
 
@@ -462,13 +463,13 @@ setup_vnc() {
   fi
 
   if [[ "$do_stuff" == true ]]; then
-    #remove_default_vnc
-    #install_tightvnc
-    #echo "Running TightVNC Server for initial configuration..."
-    #vncserver :1
-    #create_service
-    #echo "TightVNC Server has been installed and configured. It will start automatically at boot."
-	echo "TightVNC Installer is out of service. Please try back later."
+    remove_default_vnc
+    install_tightvnc
+    echo "Running TightVNC Server for initial configuration..."
+    vncserver :1
+    create_service
+    echo "TightVNC Server has been installed and configured. It will start automatically at boot."
+	#echo "TightVNC Installer is out of service. Please try back later."
   else
     echo "Skipping the installation and configuration of TightVNC Server."
   fi
