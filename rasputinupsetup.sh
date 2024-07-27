@@ -35,7 +35,7 @@ echo "Why? Because my reasons. Mostly MobaXTerm. - https://mobaxterm.mobatek.net
 echo
 echo "For the installation, we need to shrink the log directory size down to $size_value MB. This is the amount of space in RAM"
 echo "that Log2Ram will occoupy. and how big logs can grow. Log2Ram will handle compressing the contents in RAM, so logs can grow"
-echo "through runtime. But, at shutdown, the logs will again be pruned to fit into the alloted space."
+echo "through runtime."
 echo
 echo "All current logs will be configured to roll over every 7 days. Note that any new applications you install later will need to"
 echo "be manually configured to use logrotate. This happens at shutdown, too."
