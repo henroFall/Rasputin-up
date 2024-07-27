@@ -30,7 +30,7 @@ echo "Why am I doing this? Well, this is something I run on every SBC as I get s
 echo "Basically, you'll save wear and tear on the SD card and give an overall speed boost to alot of the day-to-day operations."
 echo "You're doing this by moving the swap file to a compressed ram disk (translation, small ram footprint, swap when needed to"
 echo "compressed RAM vs burning the SD), reconfiguring and moving all of the log files to a RAM disk (which is regularly flushed"
-echo "to nonvolitle storage), and also, if a desktop GUI is detected, you can optionally install Tightvnc instead Real."
+echo "to nonvolitle storage), and also, if a desktop GUI is detected, you can optionally install Tightvnc instead of Real."
 echo "Why? Because my reasons. Mostly MobaXTerm. - https://mobaxterm.mobatek.net/demo.html"
 echo
 echo "For the installation, we need to shrink the log directory size down to $size_value MB. This is the amount of space in RAM"
