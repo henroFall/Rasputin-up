@@ -14,6 +14,7 @@ You can technically run this on any Debian / Ubuntu based thing, but the problem
   - **Log Management**: Setting the system journal (and anything else I find) to wrap after 7 days.
   - **SD Card Optimization**: Utilize log2ram to reduce writes to SD Card.
   - **SWAP Optimization**: Sure, swapping to RAM is stupid. I could go on and on. BUT - swapping to an SD is also stupid. And, no swap on a SBC is pretty hard, and mostly stupid. Hence, ZRAM-SWAP. You'll lose a couple hundred meg of RAM for lots of usable swap space, it works for me.
+  - **RSYNC Update**: Many Raspberry Pi OS versions are stuck back on rsync 3.2.3. Version 3.2.7 delivers some fixes that particularly help Log2Ram with file permissions. I will update rsync if needed. 
   - **TightVNC**: Why? [You know why](https://youtu.be/qraa_1EX9GY?si=78f3KR4CXlxlk74m). But, seriously, I use [MobaXTerm](https://mobaxterm.mobatek.net/demo.html) and it doesn't like RealVNC. Plus, RealVNC lost me at "pricing." So I was constantly running the TightVNC installer, now it's in here for me, and you!
 
 ## Installation
