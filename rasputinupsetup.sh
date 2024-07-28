@@ -9,6 +9,12 @@ fi
 is_number() {
     [[ $1 =~ ^[0-9]+$ ]]
 }
+
+to_lowercase() {
+    local input="$1"
+    echo "${input,,}"
+}
+
 LOG_DIR="/var/log"
 # Get the total amount of RAM in MB
 total_ram=$(free -m | awk '/^Mem:/{print $2}')
@@ -31,7 +37,7 @@ echo "Basically, you'll save wear and tear on the SD card and give an overall sp
 echo "You're doing this by moving the swap file to a compressed ram disk (translation, small ram footprint, swap when needed to"
 echo "compressed RAM vs burning the SD), reconfiguring and moving all of the log files to a RAM disk (which is regularly flushed"
 echo "to nonvolitle storage), and also, if a desktop GUI is detected, you can optionally install Tightvnc instead of Real."
-echo "Why? Because my reasons. Mostly MobaXTerm. - https://mobaxterm.mobatek.net/demo.html"
+echo "Why? Because my reasons. Mostly MobaXTerm. - https://mobaxterm.mobatek.net/demo.html" I'm also upgrading rsync. Again, reasons."
 echo
 echo "For the installation, we need to shrink the log directory size down to $size_value MB. This is the amount of space in RAM"
 echo "that Log2Ram will occoupy. and how big logs can grow. Log2Ram will handle compressing the contents in RAM, so logs can grow"
@@ -91,6 +97,35 @@ if [[ " $@ " =~ " --uninstall " ]]; then
     exit 0
 fi
 #####################################################################
+apt update
+initial_manual_packages=$(apt-mark showmanual)
+
+# rsync update
+target_version="3.2.7"
+version_lt() {
+    [ "$1" = "$2" ] && return 1 || [ "$1" = "$(echo -e "$1\n$2" | sort -V | head -n1)" ]
+}
+current_version=$(rsync --version | head -n 1 | awk '{print $3}')
+if version_lt "$current_version" "$target_version"; then
+    echo "Updating rsync from version $current_version to $target_version..."
+    apt install gcc g++ gawk autoconf automake python3-cmarkgfm libssl-dev attr libxxhash-dev libattr1-dev liblz4-dev libzstd-dev acl libacl1-dev -y
+    wget https://download.samba.org/pub/rsync/src/rsync-$target_version.tar.gz
+    tar xzf rsync-$target_version.tar.gz
+    cd rsync-$target_version
+    ./configure
+    make
+    sudo make install
+    
+    # Verify the update
+    new_version=$(rsync --version | head -n 1 | awk '{print $3}')
+    echo "rsync updated to version $new_version"
+    cd ..
+    rm -rf rsync-$target_version
+    rm rsync-$target_version.tar.gz
+else
+    echo "rsync is already at version $current_version or higher."
+fi
+
 # Vacuum journalctl down to 32MB
 echo -n "Vacuuming journalctl logs down to 32MB..."
 journalctl --vacuum-size=64M > /dev/null
@@ -272,7 +307,6 @@ chmod +x /opt/More_RAM/uninstall
 echo "Adding log2ram repository and installing log2ram via apt..."
 echo "deb [signed-by=/usr/share/keyrings/azlux-archive-keyring.gpg] http://packages.azlux.fr/debian/ bookworm main" | tee /etc/apt/sources.list.d/azlux.list
 wget -O /usr/share/keyrings/azlux-archive-keyring.gpg https://azlux.fr/repo.gpg
-apt update
 PACKAGE_NAME="log2ram"
 RETRY_LIMIT=5
 RETRY_DELAY=10
@@ -422,7 +456,6 @@ remove_default_vnc() {
 
 install_tightvnc() {
   echo "Installing TightVNC Server..."
-  sudo apt update
   sudo apt install -y tightvncserver
 }
 
@@ -437,8 +470,8 @@ After=network.target
 Type=forking
 User=pi
 Group=pi
-ExecStart=/usr/bin/vncserver :1
-ExecStop=/usr/bin/vncserver -kill :1
+ExecStart=/usr/bin/vncserver :0
+ExecStop=/usr/bin/vncserver -kill :0
 
 [Install]
 WantedBy=multi-user.target
@@ -447,9 +480,10 @@ EOF'
 }
 
 setup_vnc() {
-  if [[ "$contkey" == "V" ]]; then
+  contkey=$(to_lowercase "$contkey")
+  if [[ "$contkey" == "v" ]]; then
     do_stuff=true
-  elif [[ "$contkey" == "N" ]]; then
+  elif [[ "$contkey" == "n" ]]; then
     do_stuff=false
   else
     read -p "It looks like you have a desktop enviornment installed. Do you want to install TightVNC? (yes/no): " response
@@ -468,7 +502,7 @@ setup_vnc() {
     
     original_user=$SUDO_USER
     echo "Running the vncserver command as the original user: ($original_user)..."
-    sudo -u $original_user vncserver :1
+    sudo -u $original_user vncserver :0
     create_service
     echo "TightVNC Server has been installed and configured. It will start automatically at boot."
 	#echo "TightVNC Installer is out of service. Please try back later."
@@ -483,6 +517,13 @@ if check_desktop_environment; then
 else
   echo "No desktop environment detected. Skipping VNC server setup."
 fi
+
+echo "Fixing any packages marked as manually installed by this script..."
+final_manual_packages=$(apt-mark showmanual)
+new_manual_packages=$(comm -13 <(echo "$initial_manual_packages" | sort) <(echo "$final_manual_packages" | sort))
+for pkg in $new_manual_packages; do
+    sudo apt-mark auto "$pkg"
+done
 
 echo 
 echo "Done."
