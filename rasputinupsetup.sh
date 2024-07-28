@@ -114,7 +114,7 @@ if version_lt "$current_version" "$target_version"; then
     cd rsync-$target_version
     ./configure
     make
-    sudo make install
+    make install
     
     # Verify the update
     new_version=$(rsync --version | head -n 1 | awk '{print $3}')
@@ -283,15 +283,15 @@ set_value() {
   [ ! -f "$file" ] && error "Config file '$file' does not exist!"
   local setting="$1"
   local setting_without_value="$(echo "$setting" | awk -F= '{print $1}')"
-  sudo sed -i "s/^${setting_without_value}=.*/${setting}/g" "$file"
+  sed -i "s/^${setting_without_value}=.*/${setting}/g" "$file"
   if ! grep -qxF "$setting" "$file"; then
-    echo "$setting" | sudo tee -a "$file" >/dev/null
+    echo "$setting" | tee -a "$file" >/dev/null
   fi
 }
 set_sysctl_value() {
   set_value "$1" /etc/sysctl.conf
   echo "  - $1"
-  sudo sysctl "$1" >/dev/null
+  sysctl "$1" >/dev/null
 }
 EOF
 )
@@ -434,7 +434,7 @@ log_cleanup
 EOF
 
 chmod +x "$target_script"
-sudo sed -i "/^ExecStop=\/usr\/local\/bin\/log2ram stop/a ExecStopPost=/etc/log2ramdown.sh" /etc/systemd/system/log2ram.service
+sed -i "/^ExecStop=\/usr\/local\/bin\/log2ram stop/a ExecStopPost=/etc/log2ramdown.sh" /etc/systemd/system/log2ram.service
 echo "Shutdown script created and made executable at $target_script. Logs will be purged if needed at each service shutdown."
 
 check_desktop_environment() {
@@ -448,7 +448,7 @@ check_desktop_environment() {
 remove_default_vnc() {
   if dpkg -l | grep -q realvnc-vnc-server; then
     echo "Raspberry Pi's default VNC server detected. Removing it..."
-    sudo apt remove -y realvnc-vnc-server
+    apt remove -y realvnc-vnc-server
   else
     echo "Raspberry Pi's default VNC server not detected."
   fi
@@ -456,12 +456,12 @@ remove_default_vnc() {
 
 install_tightvnc() {
   echo "Installing TightVNC Server..."
-  sudo apt install -y tightvncserver
+  apt install -y tightvncserver
 }
 
 create_service() {
   echo "Creating systemd service for TightVNC Server..."
-  sudo bash -c 'cat > /etc/systemd/system/tightvncserver.service <<EOF
+  bash -c 'cat > /etc/systemd/system/tightvncserver.service <<EOF
 [Unit]
 Description=TightVNC server
 After=network.target
@@ -476,7 +476,7 @@ ExecStop=/usr/bin/vncserver -kill :0
 [Install]
 WantedBy=multi-user.target
 EOF'
-  sudo systemctl enable tightvncserver.service
+  systemctl enable tightvncserver.service
 }
 
 setup_vnc() {
@@ -522,7 +522,7 @@ echo "Fixing any packages marked as manually installed by this script..."
 final_manual_packages=$(apt-mark showmanual)
 new_manual_packages=$(comm -13 <(echo "$initial_manual_packages" | sort) <(echo "$final_manual_packages" | sort))
 for pkg in $new_manual_packages; do
-    sudo apt-mark auto "$pkg"
+    apt-mark auto "$pkg"
 done
 
 echo 
