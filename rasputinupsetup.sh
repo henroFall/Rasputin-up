@@ -37,7 +37,7 @@ echo "Basically, you'll save wear and tear on the SD card and give an overall sp
 echo "You're doing this by moving the swap file to a compressed ram disk (translation, small ram footprint, swap when needed to"
 echo "compressed RAM vs burning the SD), reconfiguring and moving all of the log files to a RAM disk (which is regularly flushed"
 echo "to nonvolitle storage), and also, if a desktop GUI is detected, you can optionally install x11vnc instead of Real."
-echo "Why? Because my reasons. Mostly MobaXTerm. - https://mobaxterm.mobatek.net/demo.html" I'm also upgrading rsync. Again, reasons."
+echo "Why? Because my reasons. Mostly MobaXTerm. - https://mobaxterm.mobatek.net/demo.html I'm also upgrading rsync. Again, reasons."
 echo
 echo "For the installation, we need to shrink the log directory size down to $size_value MB. This is the amount of space in RAM"
 echo "that Log2Ram will occoupy. and how big logs can grow. Log2Ram will handle compressing the contents in RAM, so logs can grow"
