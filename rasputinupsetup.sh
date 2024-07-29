@@ -36,7 +36,7 @@ echo "Why am I doing this? Well, this is something I run on every SBC as I get s
 echo "Basically, you'll save wear and tear on the SD card and give an overall speed boost to alot of the day-to-day operations."
 echo "You're doing this by moving the swap file to a compressed ram disk (translation, small ram footprint, swap when needed to"
 echo "compressed RAM vs burning the SD), reconfiguring and moving all of the log files to a RAM disk (which is regularly flushed"
-echo "to nonvolitle storage), and also, if a desktop GUI is detected, you can optionally install Tightvnc instead of Real."
+echo "to nonvolitle storage), and also, if a desktop GUI is detected, you can optionally install x11vnc instead of Real."
 echo "Why? Because my reasons. Mostly MobaXTerm. - https://mobaxterm.mobatek.net/demo.html" I'm also upgrading rsync. Again, reasons."
 echo
 echo "For the installation, we need to shrink the log directory size down to $size_value MB. This is the amount of space in RAM"
@@ -52,14 +52,14 @@ echo "against anything leftover from prior installs, and clean up accordingly. I
 echo "You can optionally run with --uninstall to clean up and exit."
 echo
 echo "I haven't done anything yet. When you are done reading, PRESS:"
-echo "  V,             to install tightvncserver if a desktop is present, with no further questions"
-echo "  N,             to NOT install tightvnc   if a desktop is present, with no further questions"
+echo "  V,             to install x11vnc if a desktop is present, with no further questions"
+echo "  N,             to NOT install x11vnc   if a desktop is present, with no further questions"
 echo "  ANY OTHER KEY, to continue and be prompted for VNC install later (unless uninstalling, in which case I keep going now)"
 if [[ ! " $@ " =~ " --uninstall " ]]; then
     read -n 1 -s contkey
 else
     echo "UNINSTALLING..."
-	echo "NOTE: Uninstall DOES NOT remove TightVNC, just Log2RAM and More RAM."
+	echo "NOTE: Uninstall DOES NOT remove x11vnc, just Log2RAM and More RAM."
 fi
 size_valueMB=$size_value
 size_value=$((size_value * 1024))
@@ -454,29 +454,26 @@ remove_default_vnc() {
   fi
 }
 
-install_tightvnc() {
-  echo "Installing TightVNC Server..."
-  apt install -y tightvncserver
+install_vnc() {
+  echo "Installing VNC Server..."
+  apt install -y x11vnc
 }
 
 create_service() {
-  echo "Creating systemd service for TightVNC Server..."
-  bash -c 'cat > /etc/systemd/system/tightvncserver.service <<EOF
+  echo "Creating systemd service for VNC Server..."
+  bash -c 'cat > /etc/systemd/system/vncserver.service <<EOF
 [Unit]
-Description=TightVNC server
-After=network.target
+Description=Start x11vnc at startup.
+After=multi-user.target
 
 [Service]
-Type=forking
-User=pi
-Group=pi
-ExecStart=/usr/bin/vncserver :0
-ExecStop=/usr/bin/vncserver -kill :0
+Type=simple
+ExecStart=/usr/bin/x11vnc -forever -display :0 -auth guess -passwd <your_password>
 
 [Install]
 WantedBy=multi-user.target
 EOF'
-  systemctl enable tightvncserver.service
+  systemctl enable vncserver.service
 }
 
 setup_vnc() {
@@ -498,16 +495,16 @@ setup_vnc() {
 
   if [[ "$do_stuff" == true ]]; then
     remove_default_vnc
-    install_tightvnc
+    install_vnc
     
     original_user=$SUDO_USER
-    echo "Running the vncserver command as the original user: ($original_user)..."
-    sudo -u $original_user vncserver :0
+    echo "Running the vncserver command to get and store password as the original user: ($original_user)..."
+    echo "Please follow the instructions and DO elect to save the password."
+    sudo -u $original_user x11vnc -storepasswd
     create_service
-    echo "TightVNC Server has been installed and configured. It will start automatically at boot."
-	#echo "TightVNC Installer is out of service. Please try back later."
+    echo "The x11vnc Server has been installed and configured. It will start automatically at boot."
   else
-    echo "Skipping the installation and configuration of TightVNC Server."
+    echo "Skipping the installation and configuration of the x11vnc Server."
   fi
 }
 
@@ -530,7 +527,7 @@ echo "Done."
 echo
 echo "After the reboot, you can check the status of zram-swap by running 'zramctl'."
 echo "After the reboot, you can check the status of log2ram by running 'systemctl status log2ram'."
-echo "After the reboot, you can check the status of tightvncserver by running 'systemctl status tightvncserver'."
+echo "After the reboot, you can check the status of the vnc by running 'systemctl status vncserver'."
 echo
 echo "Rasputin-up setup script completed successfully! The system will now reboot in 10 seconds. Press CTRL+C to abort."
 echo
