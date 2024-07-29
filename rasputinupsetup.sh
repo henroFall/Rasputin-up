@@ -99,7 +99,8 @@ fi
 #####################################################################
 apt update
 initial_manual_packages=$(apt-mark showmanual)
-
+echo "*** Ignore any messages about packages being set to be manually installed. I will fix that at the end."
+echo
 # rsync update
 target_version="3.2.7"
 version_lt() {
@@ -461,18 +462,18 @@ install_vnc() {
 
 create_service() {
   echo "Creating systemd service for VNC Server..."
-  bash -c 'cat > /etc/systemd/system/vncserver.service <<EOF
+  bash -c "cat <<EOT > /etc/systemd/system/vncserver.service
 [Unit]
 Description=Start x11vnc at startup.
 After=multi-user.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/x11vnc -forever -display :0 -auth guess -passwd <your_password>
+ExecStart=/usr/bin/x11vnc -forever -display :0 -auth guess -passwdfile $original_home/.vnc/passwd
 
 [Install]
 WantedBy=multi-user.target
-EOF'
+EOT"
   systemctl enable vncserver.service
 }
 
@@ -498,9 +499,10 @@ setup_vnc() {
     install_vnc
     
     original_user=$SUDO_USER
+    original_home=$(eval echo ~$original_user)
     echo "Running the vncserver command to get and store password as the original user: ($original_user)..."
     echo "Please follow the instructions and DO elect to save the password."
-    sudo -u $original_user x11vnc -storepasswd
+    sudo -u $original_user x11vnc -storepasswd $original_home/.vnc/passwd
     create_service
     echo "The x11vnc Server has been installed and configured. It will start automatically at boot."
   else
