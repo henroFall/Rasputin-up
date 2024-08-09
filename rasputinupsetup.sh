@@ -314,6 +314,8 @@ RETRY_DELAY=10
 attempt=0
 while [ $attempt -lt $RETRY_LIMIT ]; do
     apt install -y $PACKAGE_NAME
+    apt-mark manual $PACKAGE_NAME
+    apt-mark manual libfuse2
     
     # Check if the install command was successful
     if [ $? -eq 0 ]; then
